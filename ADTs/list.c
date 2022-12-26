@@ -44,13 +44,32 @@ unsigned list_len(List *ll) {
   return ll->len;
 }
 
-void test(List *ll) {
-  int cpy;
-  Node *tmp = ll->head;
-  while(tmp != ll->tail) {
-    node_get_value(tmp, &cpy);
-    printf("%d ", cpy);
-    tmp = node_get_next(tmp);
+typedef struct ListIterator {
+  Node *node;
+} ListIterator;
+
+ListIterator *iterator_create(List *ll) {
+  if(ll == NULL) handle_error("trying to create a iterator from a NULL list");
+  
+  ListIterator *lli = (ListIterator *) malloc(sizeof(ListIterator));
+  if(lli == NULL) handle_error("fail to malloc list iterator");
+  lli->node = ll->head;
+  return lli;
+}
+
+void iterator_delete(ListIterator *lli) {
+  free(lli);
+  lli = NULL;
+}
+
+int iterator_next(ListIterator *lli, void *to_cpy) {
+  if(lli == NULL) handle_error("trying advance with next on a NULL iterator");
+  if(node_get_next(lli->node) == NULL) {
+    free(lli);
+    return -1;
   }
-  printf("\n");
+  Node *tmp = lli->node;
+  node_get_value(tmp, to_cpy);
+  lli->node = node_get_next(tmp);
+  return 0;
 }
