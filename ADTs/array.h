@@ -19,6 +19,14 @@ typedef struct Array Array;
 * make extend at a specific position
 */
 
+/*
+* the functions that remove elements are wrong, they can return a address that may be modified or deallocated
+* and if some memory allocated on heap is removed we have a memory leak
+* 
+* make a global array that contains all Array created and at the final call a method that free all
+* that wasn't deallocated before
+*/
+
 Array *array_create(size_t data_size);
 void array_delete(Array *ar);
 void array_set_impl(Array *ar, void *to_add, unsigned index);
