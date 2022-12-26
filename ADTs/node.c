@@ -17,7 +17,7 @@ Node *node_create(void *value, size_t data_size, Node *next_node) {
   if(value == NULL) handle_error("trying to create a node with a NULL value");
 
   Node *new_node = (Node *) malloc(sizeof(Node));
-  if(new_node == NULL) handle_error("fail to maloc Node");
+  if(new_node == NULL) handle_error("fail to malloc Node");
 
   new_node->data = malloc(data_size);
   memcpy(new_node->data, value, data_size);
@@ -25,6 +25,22 @@ Node *node_create(void *value, size_t data_size, Node *next_node) {
   new_node->next = next_node;
   new_node->data_size = data_size;
 
+  return new_node;
+}
+
+/*
+* creating a node without value
+*
+*/
+Node *node_create_null() {
+  Node *new_node = (Node *) malloc(sizeof(Node));
+  if(new_node == NULL) handle_error("fail to malloc Node");
+
+  new_node->data = calloc(sizeof(char), 1);
+  if(new_node == NULL) handle_error("fail to calloc data");
+  
+  new_node->next = NULL;
+  new_node->data_size = 1;
   return new_node;
 }
 
@@ -83,12 +99,20 @@ void node_get_value(Node *n, void *to_ret) {
 }
 
 /*
-* set the value of data with to_set and copy the previous one to to_ret
+* set the value of data with to_set and copy the previous one to to_ret, the data type don't need to be the same
 *
 */
-void node_set_value(Node *n, void *to_ret, void *to_set) {
+void node_set_value(Node *n, void *to_ret, void *to_set, size_t new_data_size) {
   if(n == NULL) handle_error("trying to set value of a NULL address");
   if(to_ret == NULL or to_set == NULL) handle_error("tryingo to use NULL addresses for set value");
   memcpy(to_ret, n->data, n->data_size);
-  memcpy(n->data, to_set, n->data_size);
+  
+  n->data = realloc(n->data, new_data_size);
+  memcpy(n->data, to_set, new_data_size);
+  n->data_size = new_data_size;
+}
+
+size_t node_data_size(Node *n) {
+  if(n == NULL) handle_error("trying to return the data_size of a NULL address");
+  return n->data_size;
 }
