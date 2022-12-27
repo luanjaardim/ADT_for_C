@@ -1,5 +1,5 @@
 #include "ADTs/array.h"
-// #include "array.c"
+// #include "ADTs/array.c"
 #include <time.h>
 #define f(a, b) for(int a=0; a<b; a++)
 
@@ -16,26 +16,45 @@ int my_own_cmp(Array *ar, unsigned ind1, unsigned ind2) {
 
 int main(int argc, const char **argv) {
 
-  srand(time(NULL));
-  Array *ar = v_array_create();
-  int qtd = (rand() % 9) + 1;
-  f(i, qtd) {
-    v_array_append(ar, i_array_create());
-    int qtd_elements = (rand() % 19) + 1;
-    f(j, qtd_elements) {
-      i_array_append(v_array_get(ar, i), rand() % 1000);
-    }
-    array_sort(v_array_get(ar, i), array_std_cmp);
-  }
-  array_sort(ar, my_own_cmp); //custom compare function for sorting
+  //MATRIX WITH CUSTOM SORTING
+  // srand(time(NULL));
+  // Array *ar = v_array_create();
+  // int qtd = (rand() % 9) + 1;
+  // f(i, qtd) {
+  //   v_array_append(ar, i_array_create());
+  //   int qtd_elements = (rand() % 19) + 1;
+  //   f(j, qtd_elements) {
+  //     i_array_append(v_array_get(ar, i), rand() % 1000);
+  //   }
+  //   array_sort(v_array_get(ar, i), array_std_cmp);
+  // }
+  // array_sort(ar, my_own_cmp); //custom compare function for sorting
 
-  unsigned len = array_len(ar);
-  f(i, len) {
-    array_print_elements(v_array_get(ar, i), "%d ", int);
-    array_delete(v_array_get(ar, i));
-  }
+  // unsigned len = array_len(ar);
+  // f(i, len) {
+  //   array_print_elements(v_array_get(ar, i), "%d ", int);
+  //   array_delete(v_array_get(ar, i));
+  // }
 
-  array_delete(ar);
+  // array_delete(ar);
+
+
+  //USING DELETE ALL
+  // Array *ar = i_array_create();
+  // Array *ar2 = i_array_create();
+  // Array *ar3 = i_array_create();
+
+  // Array *ai_mds = v_array_create();
+  // v_array_append(ai_mds, ar);
+  // v_array_append(ai_mds, ar2);
+  // v_array_append(ai_mds, ar3);
+  // array_delete(v_array_get(ai_mds, 0));
+  // // array_delete(ar);
+  // // array_delete(ar2);
+  // // array_delete(ar3);
+  // array_delete_all();
+
+
 
   // Array *ar = i_array_create();
 
@@ -54,6 +73,8 @@ int main(int argc, const char **argv) {
   // array_print_elements(ar, "%c", char);
 
   // array_delete(ar);
+
+  
 
   return 0;
 }

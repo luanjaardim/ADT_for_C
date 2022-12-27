@@ -14,6 +14,9 @@ typedef struct Array {
   void *data;
 } Array;
 
+Array **global_garbage_array = NULL;
+unsigned garbage_count = 0, garbage_cap = INITIAL_CAP;
+
 /*
 * return an array instance for the data type
 *
@@ -29,6 +32,21 @@ Array *array_create(size_t data_size) {
   ar->data_size = data_size;
   ar->capacity = inital_capacity;
   ar->len = 0;
+
+  if(global_garbage_array == NULL) {
+    global_garbage_array = (Array **) malloc(sizeof(Array *) * INITIAL_CAP);
+    if(global_garbage_array == NULL) handle_error("fail to malloc global garbage");
+    global_garbage_array[garbage_count++] = ar;
+
+  } else {
+    if(garbage_count == garbage_cap) {
+      garbage_cap *= 2;
+      global_garbage_array = (Array **) realloc(global_garbage_array, sizeof(Array *) * garbage_cap);
+      if(global_garbage_array == NULL) handle_error("fail to realloc global garbage");
+    }
+    global_garbage_array[garbage_count++] = ar;
+  }
+
   return ar;
 }
 
@@ -50,12 +68,35 @@ void maybe_realloc_data(Array *ar) {
 *
 */
 void array_delete(Array *ar) {
-  if(ar == NULL) handle_error("trying to delete a NULL array");
-  if(ar->data == NULL) handle_error("trying to delete a NULL data pointer");
-  free(ar->data);
-  ar->data = NULL;
-  free(ar);
-  ar = NULL;
+  Array **pnt = global_garbage_array;
+  unsigned len = garbage_count;
+  for(int i = 0; i < len; i++) {
+    if(pnt[i] == ar) {
+      free(ar->data);
+      ar->data = NULL;
+      free(ar);
+      ar = NULL;
+      pnt[i] = NULL;
+    }
+  }
+}
+
+/*
+* this function use an global array that have all the address of arrays on heap
+* to then free them all
+*/
+void array_delete_all() {
+  Array **pnt = global_garbage_array;
+  unsigned len = garbage_count;
+  for(int i = 0; i < len; i++) {
+    if(pnt[i] == NULL) continue;
+
+    free(pnt[i]->data);
+    pnt[i]->data = NULL;
+    free(pnt[i]);
+    pnt[i] = NULL;
+  }
+  free(global_garbage_array);
 }
 
 /*

@@ -29,6 +29,7 @@ typedef struct Array Array;
 
 Array *array_create(size_t data_size);
 void array_delete(Array *ar);
+void array_delete_all();
 void array_set_impl(Array *ar, void *to_add, unsigned index);
 void array_get_impl(Array *ar, void *to_cpy, unsigned index);
 void array_insert_at_impl(Array *ar, void *to_add, unsigned index);
