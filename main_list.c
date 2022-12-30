@@ -55,20 +55,28 @@ int main(int argc, const char **argv) {
   int *pnt1 = &one;
   int **pnt2 = &pnt1;
 
-  list_append_impl(ll, &opa, sizeof(opa), CHAR_TYPE);
-  list_append_impl(ll, &sla, sizeof(sla), CHAR_TYPE);
-  list_append_impl(ll, &one, sizeof(one), INT_TYPE);
-  list_append_impl(ll, &two, sizeof(two), INT_TYPE);
-  list_append_impl(ll, &gul, sizeof(gul), FLOAT_TYPE);
-  list_append_impl(ll, &foo, sizeof(foo), FLOAT_TYPE);
-  list_append_impl(ll, &test, sizeof(test), SHORT_TYPE);
-  list_append_impl(ll, &test2, sizeof(test2), SHORT_TYPE);
-  list_append_impl(ll, &d1, sizeof(d1), DOUBLE_TYPE);
-  list_append_impl(ll, &d2, sizeof(d2), DOUBLE_TYPE);
-  list_append_impl(ll, &longol, sizeof(longol), LONG_LONG_TYPE);
-  list_append_impl(ll, pnt1, sizeof(pnt1), POINTER_TYPE);
-  list_append_impl(ll, pnt2, sizeof(pnt2), POINTER_TYPE);
-  iterate_over(ll);
+  list_append_impl(ll, &opa, CHAR_TYPE);
+  list_append_impl(ll, &sla, CHAR_TYPE);
+  list_append_impl(ll, &one, INT_TYPE);
+  list_append_impl(ll, &two, INT_TYPE);
+  list_append_impl(ll, &gul, FLOAT_TYPE);
+  list_append_impl(ll, &foo, FLOAT_TYPE);
+  list_append_impl(ll, &test, SHORT_TYPE);
+  list_append_impl(ll, &test2, SHORT_TYPE);
+  list_append_impl(ll, &d1, DOUBLE_TYPE);
+  list_append_impl(ll, &d2, DOUBLE_TYPE);
+  list_append_impl(ll, &longol, LONG_LONG_TYPE);
+  list_append_impl(ll, pnt1, POINTER_TYPE);
+  list_append_impl(ll, pnt2, POINTER_TYPE);
+  iterate_over(ll, 0);
+
+  void *pnt, *manucu;
+  list_pop_impl(ll, &pnt, POINTER_TYPE);
+  list_pop_impl(ll, &manucu, POINTER_TYPE);
+  longol = 0;
+  list_pop_impl(ll, &longol, LONG_LONG_TYPE);
+  iterate_over(ll, 0);
+  iterate_over(ll, 5);
 
   list_delete(ll);
 
