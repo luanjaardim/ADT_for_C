@@ -16,10 +16,16 @@ Node *node_create(void *value, size_t data_size);
 Node *node_create_null(size_t data_size);
 void node_delete(Node *n);
 unsigned node_delete_recursive(Node *n);
-void node_set_link(Node *n, Node *n2);
-void node_set_double_link(Node *n, Node *n2);
 void node_get_value(Node *n, void *to_ret, size_t data_size);
 void node_set_value(Node *n, void *to_ret, void *to_add, size_t data_size);
+void node_set_link(Node *n, Node *n2);
+void node_set_link_at(Node *n, Node *n2, unsigned position);
+void node_set_double_link(Node *n, Node *n2);
+void node_set_double_link_at(Node *n, Node *n2, unsigned position_n, unsigned position_n2);
+Node *node_get_neighbour(Node *n, unsigned neighbour_num);
+Node *node_swap_neighbour_position(Node *n, unsigned first_position, unsigned second_position);
+unsigned node_get_num_neighbours(Node *n);
+
 
 // Node *node_get_next(Node *n);
 // Node *node_get_prev(Node *n);

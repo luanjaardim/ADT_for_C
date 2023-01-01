@@ -88,9 +88,8 @@ void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes) 
   node_delete(n);
 }
 
-
 /*
-* deletes all nodes of a tree
+* deletes all nodes of a tree and returns the number of deleted nodes
 *
 */
 unsigned node_delete_recursive(Node *n) {
@@ -101,6 +100,25 @@ unsigned node_delete_recursive(Node *n) {
   int deleted_nodes = 0;
   node_delete_recursive_aux(n, visited, &deleted_nodes);
   return deleted_nodes;
+}
+
+/*
+* copy the value on data of n to to_ret
+*
+*/
+void node_get_value(Node *n, void *to_ret, size_t data_size) {
+  if(n == NULL or to_ret == NULL) handle_error("trying to get value with NULL addresses");
+  memcpy(to_ret, n->data, data_size);
+}
+
+/*
+* copy the previous value of n on data to to_ret and set a new one with to_add
+* both must have the same type(data_size)
+*/
+void node_set_value(Node *n, void *to_ret, void *to_add, size_t data_size) {
+  if(n == NULL or to_ret == NULL or to_add == NULL) handle_error("trying to set value with NULL addresses");
+  memcpy(to_ret, n->data, data_size);
+  memcpy(n->data, to_add, data_size);
 }
 
 /*
@@ -138,22 +156,40 @@ void node_set_double_link(Node *n, Node *n2) {
 }
 
 /*
-* copy the value on data of n to to_ret
-*
+* linking n with n2 at the passed position, that's not the index, if a position is greater than
+* the number of neighbours it's index will be num_neighbours
+* the node previous linked at the position will be moved to the last index
 */
-void node_get_value(Node *n, void *to_ret, size_t data_size) {
-  if(n == NULL or to_ret == NULL) handle_error("trying to get value with NULL addresses");
-  memcpy(to_ret, n->data, data_size);
+void node_set_link_at(Node *n, Node *n2, unsigned position) {
+  if(n == NULL or n2 == NULL) handle_error("trying to link with NULL nodes");
+  if(position < 0) handle_error("invalid neighbour position");
+  if(position > n->num_neighbours) node_set_link(n, n2);
+  maybe_realloc_neighbours(n);
+  n->neighbours[n->num_neighbours++] = n->neighbours[position];
+  n->neighbours[position] = n2;
 }
 
 /*
-* copy the previous value of n on data to to_ret and set a new one with to_add
-* both must have the same type(data_size)
+* linking n with n2 at the passed position_n, and n2 with n at the passed position_n2
+* if position is greater than the number of neighbours the index will be num_neighbours
+* the node previous linked at the position will be moved to the last index
 */
-void node_set_value(Node *n, void *to_ret, void *to_add, size_t data_size) {
-  if(n == NULL or to_ret == NULL or to_add == NULL) handle_error("trying to set value with NULL addresses");
-  memcpy(to_ret, n->data, data_size);
-  memcpy(n->data, to_add, data_size);
+void node_set_double_link_at(Node *n, Node *n2, unsigned position_n, unsigned position_n2) {
+  if(n == NULL or n2 == NULL) handle_error("trying to link with NULL nodes");
+  if(position_n < 0 or position_n2 < 0) handle_error("invalid neighbour position");
+
+  if(position_n > n->num_neighbours) node_set_link(n, n2);
+  else{
+    maybe_realloc_neighbours(n);
+    n->neighbours[n->num_neighbours++] = n->neighbours[position_n];
+    n->neighbours[position_n] = n2;
+  }
+  if(position_n2 > n2->num_neighbours) node_set_link(n2, n);
+  else {
+    maybe_realloc_neighbours(n2);
+    n2->neighbours[n2->num_neighbours++] = n2->neighbours[position_n2];
+    n2->neighbours[position_n2] = n;
+  }
 }
 
 /*
@@ -166,4 +202,26 @@ Node *node_get_neighbour(Node *n, unsigned neighbour_num) {
 
   return n->neighbours[neighbour_num];
 }
+
+/*
+* swap the position of two neighbours
+*
+*/
+Node *node_swap_neighbour_position(Node *n, unsigned first_position, unsigned second_position) {
+  if(n == NULL) handle_error("trying to change postion of a NULL address");
+  unsigned len = n->num_neighbours;
+  if(first_position < 0 or first_position >= len or second_position < 0 or second_position >= len)
+    handle_error("invalid position");
+  
+  Node *tmp = n->neighbours[first_position];
+  n->neighbours[first_position] = n->neighbours[second_position];
+  n->neighbours[second_position] = tmp;
+}
+
+unsigned node_get_num_neighbours(Node *n) {
+  if(n == NULL) handle_error("trying to get number of neighbours of a NULL address");
+
+  return n->num_neighbours;
+}
+
 void node_extend_link();
