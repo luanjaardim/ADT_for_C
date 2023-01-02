@@ -6,19 +6,35 @@
 typedef struct B_Tree {
   Node *root;
   unsigned num_nodes;
+  int (*cmp)(StdPairKV *, StdPairKV *, size_t);
 } B_Tree;
 
 typedef struct StdPairKV {
   void *key, *value;
-  unsigned key_data_len, value_data_len;
 } StdPairKV;
 
-typedef enum NodeChilds {
+typedef enum LinkedNodes {
+  PARENT,
   LEFT,
   RIGHT,
-} NodeChilds;
+} LinkedNodes;
 
-B_Tree *btree_create() {
+int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size) {
+  u_int8_t bytes_f[key_size];
+  u_int8_t bytes_s[key_size];
+
+  memcpy(bytes_f, f->key, key_size);
+  memcpy(bytes_s, s->key, key_size);
+
+  for(int byte = key_size - 1; byte >= 0; byte--) {
+    if(bytes_f[byte] == bytes_s[byte]) continue;
+    if(bytes_f[byte] > bytes_s[byte]) return 1; //greater
+    else return -1; //lesser
+  }
+  return 0; //equal
+}
+
+B_Tree *btree_create(int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
   B_Tree *new_tree = (B_Tree *) malloc(sizeof(B_Tree));
   if(new_tree == NULL) handle_error("fail to malloc binary tree");
 
@@ -28,6 +44,8 @@ B_Tree *btree_create() {
 
   new_tree->root = node_create((void *) &root_pair, data_size);
   new_tree->num_nodes = 0;
+  if(cmp == NULL) new_tree->cmp = btree_std_cmp;
+  else new_tree->cmp = cmp;
 
   return new_tree;
 }

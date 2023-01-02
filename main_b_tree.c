@@ -16,7 +16,7 @@
 
 int main(int argc, const char **argv) {
 
-  B_Tree *bt = btree_create();
+  B_Tree *bt = btree_create(NULL);
   
   btree_delete(bt);
 
