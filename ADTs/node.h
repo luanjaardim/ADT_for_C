@@ -14,8 +14,8 @@ typedef struct Node Node;
 
 Node *node_create(void *value, size_t data_size);
 Node *node_create_null(size_t data_size);
-void node_delete(Node *n);
-unsigned node_delete_recursive(Node *n);
+void node_delete(Node *n, void (*delete_data)(Node *));
+unsigned node_delete_recursive(Node *n, void (*delete_data)(Node *));
 void node_get_value(Node *n, void *to_ret, size_t data_size);
 void node_set_value(Node *n, void *to_ret, void *to_add, size_t data_size);
 void node_set_link(Node *n, Node *n2);

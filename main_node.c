@@ -1,7 +1,26 @@
 #include "ADTs/node.h"
 // #include "ADTs/node.c"
 #define f(a, b) for(int a = 0; a < b; a++)
+
+typedef struct Sla {
+  int *opa;
+  int oi;
+} Sla;
+
 INIT_NODE_TYPE(i, int)
+INIT_NODE_TYPE(mine, Sla *)
+
+Sla *create() {
+  Sla *sla = (Sla *) malloc(sizeof(Sla *));
+  sla->opa = malloc(sizeof(int *));
+  return sla;
+}
+
+void delete(Node *n) {
+  Sla *sla = mine_node_get_value(n);
+  free(sla->opa);
+  free(sla);
+}
 
 int main(int argc, const char **argv) {
 
@@ -26,7 +45,13 @@ int main(int argc, const char **argv) {
   }
   printf("\n");
 
-  unsigned a = node_delete_recursive(n);
+  unsigned a = node_delete_recursive(n, NULL);
   printf("%d\n", a);
+
+
+  Sla *opa = create();
+  Node *node = mine_node_create(opa);
+  node_delete(node, delete); //custom delete, for node elements that need own deallocation
+
   return 0;
 }

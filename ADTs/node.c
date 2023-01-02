@@ -47,7 +47,7 @@ Node *node_create_null(size_t data_size) {
   if(new_node == NULL) handle_error("fail to malloc Node");
 
   new_node->data = calloc(data_size, 1);
-  if(new_node == NULL) handle_error("fail to calloc data");
+  if(new_node->data == NULL) handle_error("fail to calloc data");
   
   new_node->neighbours = (Node **) malloc(sizeof(Node *) * INITIAL_CAP);
   if(new_node->neighbours == NULL) handle_error("fail to malloc node neighbours");
@@ -63,42 +63,44 @@ Node *node_create_null(size_t data_size) {
 * deallocate the passed node, not recommended, instead use node_delete_recursive
 * if it's used with delete_recursive a double free can occur
 * if using, all nodes must be delete
+* delete_data is a custom function, if the node element needs deallocation, pass NULL if doesn't
 */
-void node_delete(Node *n) {
+void node_delete(Node *n, void (*delete_data)(Node *)) {
   if(n == NULL) handle_error("trying to delete a NULL node");
 
   free(n->neighbours);
   n->neighbours = NULL;
+  if(delete_data != NULL) delete_data(n);
   free(n->data);
   n->data = NULL;
   free(n);
   n = NULL;
 }
 
-void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes) {
+void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes, void (*delete_data)(Node *)) {
   visited[n->id] = 1;
   Node *tmp;
   for(int i=0; i<n->num_neighbours; i++) {
     tmp = n->neighbours[i];
     if(visited[tmp->id]) continue;
-    node_delete_recursive_aux(tmp, visited, deleted_nodes);
+    node_delete_recursive_aux(tmp, visited, deleted_nodes, delete_data);
     n->neighbours[i] = NULL;
   }
   (*deleted_nodes)++;
-  node_delete(n);
+  node_delete(n, delete_data);
 }
 
 /*
 * deletes all nodes of a tree and returns the number of deleted nodes
-*
+* delete_data is a custom function, if the node element needs deallocation, pass NULL if doesn't
 */
-unsigned node_delete_recursive(Node *n) {
+unsigned node_delete_recursive(Node *n, void (*delete_data)(Node *)) {
   if(n == NULL) handle_error("trying to delete a NULL node");
 
   u_int8_t visited[num_nodes];
   for(int i=0; i<num_nodes; i++) visited[i] = 0;
   int deleted_nodes = 0;
-  node_delete_recursive_aux(n, visited, &deleted_nodes);
+  node_delete_recursive_aux(n, visited, &deleted_nodes, delete_data);
   return deleted_nodes;
 }
 
