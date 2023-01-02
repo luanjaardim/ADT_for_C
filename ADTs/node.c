@@ -82,7 +82,7 @@ void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes, 
   Node *tmp;
   for(int i=0; i<n->num_neighbours; i++) {
     tmp = n->neighbours[i];
-    if(visited[tmp->id]) continue;
+    if(tmp == NULL or visited[tmp->id]) continue;
     node_delete_recursive_aux(tmp, visited, deleted_nodes, delete_data);
     n->neighbours[i] = NULL;
   }
@@ -140,7 +140,7 @@ void maybe_realloc_neighbours(Node *n){
 *
 */
 void node_set_link(Node *n, Node *n2) {
-  if(n == NULL or n2 == NULL) handle_error("trying to link with NULL nodes");
+  if(n == NULL) handle_error("trying to link with NULL nodes");
   maybe_realloc_neighbours(n);
   n->neighbours[n->num_neighbours++] = n2;
 }
@@ -163,12 +163,16 @@ void node_set_double_link(Node *n, Node *n2) {
 * the node previous linked at the position will be moved to the last index
 */
 void node_set_link_at(Node *n, Node *n2, unsigned position) {
-  if(n == NULL or n2 == NULL) handle_error("trying to link with NULL nodes");
+  if(n == NULL) handle_error("trying to link with NULL nodes");
   if(position < 0) handle_error("invalid neighbour position");
-  if(position > n->num_neighbours) node_set_link(n, n2);
-  maybe_realloc_neighbours(n);
-  n->neighbours[n->num_neighbours++] = n->neighbours[position];
-  n->neighbours[position] = n2;
+  if(position >= n->num_neighbours) node_set_link(n, n2);
+  else {
+    if(n->neighbours[position] != NULL) {
+      maybe_realloc_neighbours(n);
+      n->neighbours[n->num_neighbours++] = n->neighbours[position];
+    }
+    n->neighbours[position] = n2;
+  }
 }
 
 /*
@@ -180,16 +184,20 @@ void node_set_double_link_at(Node *n, Node *n2, unsigned position_n, unsigned po
   if(n == NULL or n2 == NULL) handle_error("trying to link with NULL nodes");
   if(position_n < 0 or position_n2 < 0) handle_error("invalid neighbour position");
 
-  if(position_n > n->num_neighbours) node_set_link(n, n2);
+  if(position_n >= n->num_neighbours) node_set_link(n, n2);
   else{
-    maybe_realloc_neighbours(n);
-    n->neighbours[n->num_neighbours++] = n->neighbours[position_n];
+    if(n->neighbours[position_n] != NULL) {
+      maybe_realloc_neighbours(n);
+      n->neighbours[n->num_neighbours++] = n->neighbours[position_n];
+    }
     n->neighbours[position_n] = n2;
   }
-  if(position_n2 > n2->num_neighbours) node_set_link(n2, n);
+  if(position_n2 >= n2->num_neighbours) node_set_link(n2, n);
   else {
-    maybe_realloc_neighbours(n2);
-    n2->neighbours[n2->num_neighbours++] = n2->neighbours[position_n2];
+    if(n->neighbours[position_n] != NULL) {
+      maybe_realloc_neighbours(n2);
+      n2->neighbours[n2->num_neighbours++] = n2->neighbours[position_n2];
+    }
     n2->neighbours[position_n2] = n;
   }
 }
