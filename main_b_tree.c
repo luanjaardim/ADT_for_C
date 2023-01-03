@@ -28,6 +28,9 @@ int main(int argc, const char **argv) {
   sla_btree_insert(bt, 3, 9.99999);
   out = sla_btree_get_value(bt, 3, &f);
   printf("%d %f\n", out, f);
+  sla_btree_insert(bt, 3, 10.01);
+  out = sla_btree_get_value(bt, 1, &f);
+  printf("%d %f\n", out, f);
 
   btree_delete(bt);
 

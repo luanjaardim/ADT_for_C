@@ -49,16 +49,13 @@ B_Tree *btree_create(void *key_root, size_t key_size, void *value_root, size_t v
 }
 
 void btree_delete_pair(Node *n) {
+  if(n == NULL) handle_error("trying to delete a NULL node");
   StdPairKV *pair;
   node_get_value(n, &pair, sizeof(StdPairKV *));
-  if(pair->key != NULL) {
-    free(pair->key);
-    pair->key = NULL;
-  }
-  if(pair->value != NULL) {
-    free(pair->value);
-    pair->value = NULL;
-  }
+  free(pair->key);
+  pair->key = NULL;
+  free(pair->value);
+  pair->value = NULL;
   free(pair);
   pair = NULL;
 }
@@ -70,6 +67,21 @@ void btree_delete(B_Tree *bt) {
   bt->root = NULL;
   free(bt);
   bt = NULL;
+}
+
+void pair_get_key(StdPairKV *pair, void *key_to_ret, size_t key_size) {
+  if(pair == NULL) handle_error("trying to get key from a NULL pair");
+  memcpy(key_to_ret, pair->key, key_size);
+}
+
+void pair_get_value(StdPairKV *pair, void *value_to_ret, size_t value_size) {
+  if(pair == NULL) handle_error("trying to get value from a NULL pair");
+  memcpy(value_to_ret, pair->value, value_size);
+}
+
+void pair_get_key_and_value(StdPairKV *pair, void *key_to_ret, void *value_to_ret, size_t key_size, size_t value_size) {
+  pair_get_key(pair, key_to_ret, key_size);
+  pair_get_value(pair, value_to_ret, value_size);
 }
 
 int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size) {
@@ -121,33 +133,38 @@ void btree_insert(B_Tree *bt, void *new_key, size_t key_size, void *new_value, s
   bt->vertices++;
 }
 
-int btree_get_value_aux(Node *node, StdPairKV *pair, size_t key_size, size_t value_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
-  StdPairKV *pair_node;
-  node_get_value(node, &pair_node, sizeof(StdPairKV *));
+Node *search_aux(Node *node, StdPairKV *pair, size_t key_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
+  StdPairKV *node_pair;
+  node_get_value(node, &node_pair, sizeof(StdPairKV *));
 
-  int result = cmp(pair, pair_node, key_size);
-  if(!result) {
-    memcpy(pair->value, pair_node->value, value_size);
-    return 0;
-  }
-  else if(result > 0) {
+  int result = cmp(pair, node_pair, key_size);
+  if(!result) return node;
+  if(result > 0) {
     Node *right = node_get_neighbour(node, RIGHT);
-    if(right == NULL) return -1; //not found
-    else return btree_get_value_aux(right, pair, key_size, value_size, cmp);
+    if(right == NULL) return NULL;
+    else return search_aux(right, pair, key_size, cmp);
   }
   else {
     Node *left = node_get_neighbour(node, LEFT);
-    if(left == NULL) return -1; //not found
-    else return btree_get_value_aux(left, pair, key_size, value_size, cmp);
+    if(left == NULL) return NULL;
+    else return search_aux(left, pair, key_size, cmp);
   }
 }
 
-int btree_get_value(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size) {
+Node *btree_search_key(B_Tree *bt, void *key, size_t key_size) {
   StdPairKV *pair = (StdPairKV *) malloc(sizeof(StdPairKV));
+  if(pair == NULL) handle_error("fail to create pair");
   pair->key = key;
-  pair->value = to_ret;
-  int ret = btree_get_value_aux(bt->root, pair, key_size, value_size, bt->cmp);
+  Node *found_node = search_aux(bt->root, pair, key_size, bt->cmp);
   free(pair);
+  return found_node;
+}
 
-  return ret;
+int btree_get_value(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size) {
+  Node *found_node = btree_search_key(bt, key, key_size);
+  if(found_node == NULL) return -1;
+  StdPairKV *pair;
+  node_get_value(found_node, &pair, sizeof(StdPairKV *));
+  pair_get_value(pair, to_ret, value_size);
+  return 0;
 }
