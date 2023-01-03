@@ -38,7 +38,7 @@ int main(int argc, const char **argv) {
   }
   printf("\n");
 
-  node_swap_neighbour_position(n, 0, node_get_num_neighbours(n) - 1);
+  node_change_neighbour_position(n, 0, node_get_num_neighbours(n) - 1);
   f(i, node_get_num_neighbours(n)) {
     tmp  = i_node_get_value(node_get_neighbour(n, i));
     printf("%d ", tmp);
@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
   int sla25 = i_node_get_value(n_test);
   printf("%d %d\n", node_get_num_neighbours(test), sla25);
 
-  node_swap_neighbour_position(test, 0, 2);
+  node_change_neighbour_position(test, 0, 2);
   Node *n_test2 = node_get_neighbour(test, 2);
   int sla26 = i_node_get_value(n_test2);
   printf("%d\n", sla26);
@@ -72,5 +72,26 @@ int main(int argc, const char **argv) {
   printf("%d %d\n", node_get_num_neighbours(test), node_get_num_neighbours(test2));
 
   node_delete_recursive(test, NULL);
+
+  Node *my_node = i_node_create(1);
+  node_set_double_link_at(my_node, i_node_create(2), 0, 0);
+  Node *my_other_node = i_node_create(3);
+  node_set_double_link_at(my_other_node, i_node_create(4), 0, 0);
+  
+  node_swap_neighbours(my_node, my_other_node, 0, 0);
+  Node *my_node_n = node_get_neighbour(my_node, 0);
+  Node *my_other_node_n = node_get_neighbour(my_other_node, 0);
+
+  int ret1 = i_node_get_value(my_node_n);
+  int ret2 = i_node_get_value(my_other_node_n);
+  printf("%d %d\n", ret1, ret2);
+  ret1 = i_node_get_value(node_get_neighbour(my_node_n, 0));
+  ret2 = i_node_get_value(node_get_neighbour(my_other_node_n, 0));
+  printf("%d %d\n", ret1, ret2);
+
+  node_set_link(my_node, my_other_node);
+
+  node_delete_recursive(my_node, NULL);
+
   return 0;
 }

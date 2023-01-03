@@ -214,10 +214,10 @@ Node *node_get_neighbour(Node *n, unsigned neighbour_num) {
 }
 
 /*
-* swap the position of two neighbours
+* change the position of two neighbours
 *
 */
-Node *node_swap_neighbour_position(Node *n, unsigned first_position, unsigned second_position) {
+void node_change_neighbour_position(Node *n, unsigned first_position, unsigned second_position) {
   if(n == NULL) handle_error("trying to change postion of a NULL address");
   unsigned len = n->num_neighbours;
   if(first_position < 0 or first_position >= len or second_position < 0 or second_position >= len)
@@ -228,6 +228,65 @@ Node *node_swap_neighbour_position(Node *n, unsigned first_position, unsigned se
   n->neighbours[second_position] = tmp;
 }
 
+/*  
+* remove node_to_remove from node neighbours and return the position it was on or -1 if it's not a neighbour
+*
+*/
+unsigned node_remove_link(Node *node, Node *node_to_remove) {
+  if(node == NULL or node_to_remove == NULL) handle_error("trying to remove a link with NULL addresses");
+
+  unsigned num = node_get_num_neighbours(node);
+  for(int i=0; i<num; i++) {
+    if(node->neighbours[i] == node_to_remove) node->neighbours[i] = NULL;
+    return i;
+  }
+  return -1;
+}
+
+/*  
+* remove the neighbour on position and return it
+*
+*/
+Node *node_remove_link_at(Node *n, unsigned position) {
+  if(n == NULL) handle_error("trying to remove a link with NULL addresses");
+  if(position < 0 or position >= node_get_num_neighbours(n)) handle_error("position out of bounds");
+
+  Node *node_to_remove = node_get_neighbour(n, position);
+  n->neighbours[position] = NULL;
+  return node_to_remove;
+}
+
+/*
+* swap the neighbour of n1 at first_position wiht the neighbour of n2 at second_position
+* the neighbours on that positions also are updated
+*/
+void node_swap_neighbours(Node *n1, Node *n2, unsigned first_position, unsigned second_position) {
+  if(n1 == NULL or n2 == NULL) handle_error("trying to swap neighbours with NULL addresses");
+
+  Node *tmp1, *tmp2;
+  tmp1 = node_remove_link_at(n1, first_position);
+  tmp2 = node_remove_link_at(n2, second_position);
+  unsigned pos1, pos2;
+
+  if(tmp1 != NULL) {
+    pos1 = node_remove_link(tmp1, n1);
+    node_set_double_link_at(n2, tmp1, second_position, pos1);
+  }
+  else
+    node_set_link_at(n2, NULL, second_position);
+
+  if(tmp2 != NULL) {
+    pos2 = node_remove_link(tmp2, n2);
+    node_set_double_link_at(n1, tmp2, first_position, pos2);
+  }
+  else
+    node_set_link_at(n1, NULL, first_position);
+}
+
+/*
+* returns the number of neighbours 
+*
+*/
 unsigned node_get_num_neighbours(Node *n) {
   if(n == NULL) handle_error("trying to get number of neighbours of a NULL address");
 
