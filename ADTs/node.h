@@ -23,18 +23,11 @@ void node_set_link_at(Node *n, Node *n2, unsigned position);
 void node_set_double_link(Node *n, Node *n2);
 void node_set_double_link_at(Node *n, Node *n2, unsigned position_n, unsigned position_n2);
 Node *node_get_neighbour(Node *n, unsigned neighbour_num);
-Node *node_swap_neighbour_position(Node *n, unsigned first_position, unsigned second_position);
+void node_change_neighbour_position(Node *n, unsigned first_position, unsigned second_position);
+unsigned node_remove_link(Node *node, Node *node_to_remove);
+Node *node_remove_link_at(Node *n, unsigned position);
+void node_swap_neighbours(Node *n1, Node *n2, unsigned first_position, unsigned second_position);
 unsigned node_get_num_neighbours(Node *n);
-
-
-// Node *node_get_next(Node *n);
-// Node *node_get_prev(Node *n);
-// Node *node_set_next(Node *n, Node *new_next);
-// Node *node_set_prev(Node *n, Node *new_prev);
-// void node_get_value(Node *n, void *to_ret);
-// void node_set_value(Node *n, void *to_ret, void *to_set, StdDataTypes new_type);
-// size_t node_data_size(Node *n);
-// StdDataTypes node_get_type(Node *n);
 
 #ifndef INIT_NODE_TYPE
 #define INIT_NODE_TYPE(name, type) \
