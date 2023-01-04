@@ -194,7 +194,7 @@ void node_set_double_link_at(Node *n, Node *n2, unsigned position_n, unsigned po
   }
   if(position_n2 >= n2->num_neighbours) node_set_link(n2, n);
   else {
-    if(n->neighbours[position_n] != NULL) {
+    if(n2->neighbours[position_n2] != NULL) {
       maybe_realloc_neighbours(n2);
       n2->neighbours[n2->num_neighbours++] = n2->neighbours[position_n2];
     }
@@ -237,7 +237,8 @@ unsigned node_remove_link(Node *node, Node *node_to_remove) {
 
   unsigned num = node_get_num_neighbours(node);
   for(int i=0; i<num; i++) {
-    if(node->neighbours[i] == node_to_remove) node->neighbours[i] = NULL;
+    if(node->neighbours[i] != node_to_remove) continue;
+    node->neighbours[i] = NULL;
     return i;
   }
   return -1;
