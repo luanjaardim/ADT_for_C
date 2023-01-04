@@ -23,8 +23,13 @@ void btree_insert(B_Tree *bt, void *new_key, size_t key_size, void *new_value, s
 int btree_get_value(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size);
 int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size);
 Node *btree_search_key(B_Tree *bt, void *key, size_t key_size);
+int btree_remove(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size);
+unsigned get_num_pairs(B_Tree *bt);
 void pair_get_key(StdPairKV *pair, void *key_to_ret, size_t key_size);
 void pair_get_value(StdPairKV *pair, void *value_to_ret, size_t value_size);
+void pair_get_key_and_value(StdPairKV *pair, void *key_to_ret, void *value_to_ret, size_t key_size, size_t value_size);
+void btree_pairs_visit(B_Tree *bt, void (*custom_func)(StdPairKV *));
+
 
 #ifndef INIT_B_TREE_TYPE
 #define INIT_B_TREE_TYPE(name, key_type, value_type) \
@@ -34,6 +39,9 @@ void pair_get_value(StdPairKV *pair, void *value_to_ret, size_t value_size);
   } \
   void name##_btree_insert(B_Tree *bt, key_type new_key, value_type new_value) { \
     btree_insert(bt, (void *) &new_key, name##_key_size, (void *) &new_value, name##_value_size); \
+  } \
+  int name##_btree_remove(B_Tree *bt, key_type key, value_type *to_ret) { \
+    return btree_remove(bt, (void *) &key, name##_key_size, (void *) to_ret, name##_value_size); \
   } \
   int name##_btree_get_value(B_Tree *bt, key_type key, value_type *to_ret) { \
     return btree_get_value(bt, (void *) &key, name##_key_size, (void *) to_ret, name##_value_size); \
