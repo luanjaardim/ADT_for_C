@@ -13,6 +13,7 @@
 unsigned num = 0;
 
 #include "ADTs/b_tree.h"
+#include "ADTs/node.h"
 // #include "ADTs/b_tree.c"
 // #include "ADTs/node.c"
 
@@ -62,14 +63,19 @@ INIT_B_TREE_TYPE(sla, int, float)
 INIT_B_TREE_TYPE(name, int, int)
 INIT_B_TREE_TYPE(v, Stru_Key *, Stru_Val *)
 
+// void node_right_rotate(Node *n);
+Node *btree_search_key(B_Tree *bt, void *key, size_t key_size);
+
+
 int main(int argc, const char **argv) {
 
+  int out;
   B_Tree *bt = sla_btree_create(2, 5.5, NULL);
   sla_btree_insert(bt, 0, 4.2);
   sla_btree_insert(bt, 1, 6.82);
 
   float f = 5.5;
-  int out = sla_btree_get_value(bt, 3, &f);
+  out = sla_btree_get_value(bt, 3, &f);
   printf("%d %f\n", out, f);
   sla_btree_insert(bt, 3, 9.99999);
   out = sla_btree_get_value(bt, 3, &f);
@@ -115,6 +121,52 @@ int main(int argc, const char **argv) {
   btree_pairs_visit(my_tree, my_delete_pair);
   btree_delete(my_tree);
   printf("simmmm\n");
+
+  // left rotation on 1
+  B_Tree *bt3 = sla_btree_create(1, 1.0, NULL);
+  sla_btree_insert(bt3, 2, 8.7);
+  sla_btree_insert(bt3, 3, 6.7);
+  sla_btree_remove(bt3, 2, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 1, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 3, &f);
+  printf("%f\n", f);
+
+  //right rotation on 3
+  sla_btree_insert(bt3, 3, 8.7);
+  sla_btree_insert(bt3, 2, 1.7);
+  sla_btree_insert(bt3, 1, 2.7);
+  sla_btree_remove(bt3, 2, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 1, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 3, &f);
+  printf("%f\n", f);
+
+  //left rotation on 1 and right rotation on 3
+  sla_btree_insert(bt3, 3, 5.48);
+  sla_btree_insert(bt3, 1, 2.34);
+  sla_btree_insert(bt3, 2, 1.32);
+  sla_btree_remove(bt3, 2, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 1, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 3, &f);
+  printf("%f\n", f);
+
+  //right rotation on 3 and left rotation on 1
+  sla_btree_insert(bt3, 1, 10.48);
+  sla_btree_insert(bt3, 3, 8.354);
+  sla_btree_insert(bt3, 2, 99.032);
+  sla_btree_remove(bt3, 1, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 2, &f);
+  printf("%f\n", f);
+  sla_btree_remove(bt3, 3, &f);
+  printf("%f\n", f);
+
+  btree_delete(bt3);
 
   return 0;
 }

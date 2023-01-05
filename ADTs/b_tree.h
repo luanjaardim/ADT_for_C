@@ -10,8 +10,6 @@
 #define and &&
 #define or ||
 
-#include "node.h"
-
 typedef struct B_Tree B_Tree;
 typedef struct StdPairKV StdPairKV;
 
@@ -21,15 +19,15 @@ B_Tree *btree_create(void *key_root, size_t key_size, void *value_root, size_t v
 void btree_delete(B_Tree *bt);
 void btree_insert(B_Tree *bt, void *new_key, size_t key_size, void *new_value, size_t value_size);
 int btree_get_value(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size);
-int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size);
-Node *btree_search_key(B_Tree *bt, void *key, size_t key_size);
+int btree_get_pair();
 int btree_remove(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size);
 unsigned get_num_pairs(B_Tree *bt);
+void btree_pairs_visit(B_Tree *bt, void (*custom_func)(StdPairKV *));
 void pair_get_key(StdPairKV *pair, void *key_to_ret, size_t key_size);
 void pair_get_value(StdPairKV *pair, void *value_to_ret, size_t value_size);
 void pair_get_key_and_value(StdPairKV *pair, void *key_to_ret, void *value_to_ret, size_t key_size, size_t value_size);
-void btree_pairs_visit(B_Tree *bt, void (*custom_func)(StdPairKV *));
-
+int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size);
+// Node *btree_search_key(B_Tree *bt, void *key, size_t key_size);
 
 #ifndef INIT_B_TREE_TYPE
 #define INIT_B_TREE_TYPE(name, key_type, value_type) \
