@@ -299,13 +299,12 @@ void visit_aux(Node *node, void (*custom_func)(StdPairKV *)) {
 */
 void btree_pairs_visit(B_Tree *bt, void (*custom_func)(StdPairKV *)) {
   if(bt == NULL) handle_error("trying to visit a NULL address");
-
-  Node *tmp = bt->root;
   visit_aux(bt->root, custom_func);
 }
 
-int btree_get_pair() {
-  return 0;
+StdPairKV *btree_get_pair(B_Tree *bt, void *key, size_t key_size) { 
+  Node *found = btree_search_key(bt, key, key_size);
+  return node_get_pair(found);;
 }
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -314,7 +313,6 @@ Node *node_left_rotate(Node *n) {
   Node *return_node = NULL;
   Node *rn = node_get_neighbour(n, RIGHT);
   if(rn == NULL) return NULL;
-  Node *rn_left = node_get_neighbour(rn, LEFT);
 
   node_swap_neighbours(n, rn, RIGHT, LEFT); //rn left is now itself
   node_swap_neighbours(n, rn, PARENT, PARENT); //n parent is now itself
@@ -345,7 +343,6 @@ Node *node_right_rotate(Node *n) {
   Node *return_node = NULL;
   Node *ln = node_get_neighbour(n, LEFT);
   if(ln == NULL) return NULL;
-  Node *ln_right = node_get_neighbour(ln, RIGHT);
 
   node_swap_neighbours(n, ln, LEFT, RIGHT);
   node_swap_neighbours(n, ln, PARENT, PARENT);
