@@ -63,8 +63,8 @@ void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned));
 
   //using define to turn generic functions in specific ones
   //it needs initialization with ARRAY_TYPE_INIT
-  #ifndef ARRAY_TYPE_INIT
-  #define ARRAY_TYPE_INIT(name, type) \
+  #ifndef INIT_ARRAY_TYPE
+  #define INIT_ARRAY_TYPE(name, type) \
     Array *name##_array_create() {  \
       return array_create(sizeof(type));  \
     } \
@@ -103,7 +103,7 @@ void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned));
       array_pop_impl(ar, (void *) &val); \
       return val; \
     }
-  #endif /* ARRAY_TYPE_INIT */
+  #endif /* INIT_ARRAY_TYPE */
 
 
 #endif /* ARRAY_LIB_DEF */
