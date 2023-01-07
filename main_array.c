@@ -1,11 +1,11 @@
-#include "ADTs/array.h"
+#include "ADTs/lib.h"
 // #include "ADTs/array.c"
 #include <time.h>
 #define f(a, b) for(int a=0; a<b; a++)
 
-ARRAY_TYPE_INIT(v, Array *)
-ARRAY_TYPE_INIT(i, int)
-ARRAY_TYPE_INIT(c, char)
+INIT_ARRAY_TYPE(v, Array *)
+INIT_ARRAY_TYPE(i, int)
+INIT_ARRAY_TYPE(c, char)
 
 int my_own_cmp(Array *ar, unsigned ind1, unsigned ind2) {
   Array **elements = (Array **) array_data_pointer(ar);
