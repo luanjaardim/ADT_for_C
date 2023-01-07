@@ -1,42 +1,81 @@
-#include "b_tree.h"
+#include "bt_map.h"
 #include "node.h"
 
 #define handle_error(msg) \
       do { printf("%s\n", msg); exit(EXIT_FAILURE); } while (0)
 
-typedef struct B_Tree {
+/*
+* ADT for a Map implemented with a Binary Tree
+*
+*/
+typedef struct BT_Map {
   Node *root;
   unsigned vertices;
-  int (*cmp)(StdPairKV *, StdPairKV *, size_t);
-} B_Tree;
+  int (*cmp)(BT_Pair *, BT_Pair *, size_t);
+} BT_Map;
 
+/*
+* struct that each node has in data
+*
+*/
 typedef struct NodeData {
-  StdPairKV *pair;
+  BT_Pair *pair;
   int8_t height;
 } NodeData;
 
-typedef struct StdPairKV {
+/*
+* pair of key and value
+*
+*/
+typedef struct BT_Pair {
   void *key, *value;
-} StdPairKV;
+} BT_Pair;
 
+/*
+* all possible links directions
+*
+*/
 typedef enum LinkedNodes {
   PARENT,
   LEFT,
   RIGHT,
 } LinkedNodes;
 
-Node *btree_node_create(void *key, size_t key_size, void *value, size_t value_size) {
-  StdPairKV *node_pair = (StdPairKV *) malloc(sizeof(StdPairKV));
-  if(node_pair == NULL) handle_error("fail to malloc root pair");
+/*
+* generate and return a BT_Map pointer to the heap allocated Map 
+* cmp can receive a custom function for comparing keys
+* if NULL is passed btmap_std_cmp is used by default
+*/
+BT_Map *btmap_create(int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
+  BT_Map *new_tree = (BT_Map *) malloc(sizeof(BT_Map));
+  if(new_tree == NULL) handle_error("fail to malloc the map");
+
+  new_tree->root = NULL;
+  new_tree->vertices = 0;
+  if(cmp == NULL)
+    new_tree->cmp = btmap_std_cmp;
+  else 
+    new_tree->cmp = cmp;
+
+  return new_tree;
+}
+
+/*
+* create a node that contains a pair and height, linked initially with 3 NULL addresses
+*
+*/
+Node *btmap_node_create(void *key, size_t key_size, void *value, size_t value_size) {
+  BT_Pair *node_pair = (BT_Pair *) malloc(sizeof(BT_Pair));
+  if(node_pair == NULL) handle_error("fail to malloc pair");
   node_pair->key = malloc(key_size);
-  if(node_pair->key == NULL) handle_error("fail to malloc root key's");
+  if(node_pair->key == NULL) handle_error("fail to malloc pair's key");
   memcpy(node_pair->key, key, key_size);
   node_pair->value = malloc(value_size);
-  if(node_pair->value == NULL) handle_error("fail to malloc root value's");
+  if(node_pair->value == NULL) handle_error("fail to malloc pair's value");
   memcpy(node_pair->value, value, value_size);
 
   NodeData *data = (NodeData *) malloc(sizeof(NodeData));
-  if(data == NULL) handle_error("fail to malloc node data");
+  if(data == NULL) handle_error("fail to malloc data");
   data->pair = node_pair;
   data->height = 0;
 
@@ -47,23 +86,32 @@ Node *btree_node_create(void *key, size_t key_size, void *value, size_t value_si
   return new_node;
 }
 
-B_Tree *btree_create(void *key_root, size_t key_size, void *value_root, size_t value_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
-  B_Tree *new_tree = (B_Tree *) malloc(sizeof(B_Tree));
-  if(new_tree == NULL) handle_error("fail to malloc binary tree");
+/*
+* generate and return a BT_Map pointer to the heap allocated Map with a initial pair
+* cmp can receive a custom function for comparing keys
+* if NULL is passed btmap_std_cmp is used by default
+*/
+BT_Map *btmap_create_with_pair(void *key_root, size_t key_size, void *value_root, size_t value_size, int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
+  BT_Map *new_tree = (BT_Map *) malloc(sizeof(BT_Map));
+  if(new_tree == NULL) handle_error("fail to malloc map");
 
-  new_tree->root = btree_node_create(key_root, key_size, value_root, value_size);
+  new_tree->root = btmap_node_create(key_root, key_size, value_root, value_size);
   new_tree->vertices = 1;
-  if(cmp == NULL) new_tree->cmp = btree_std_cmp;
+  if(cmp == NULL) new_tree->cmp = btmap_std_cmp;
   else new_tree->cmp = cmp;
 
   return new_tree;
 }
 
-void btree_delete_node_data(Node *n) {
+/*
+* function passed to node_delete, custom deleting the data
+*
+*/
+void btmap_delete_node_data(Node *n) {
   if(n == NULL) handle_error("trying to delete a NULL node");
   NodeData *data;
   node_get_value(n, &data, sizeof(NodeData *));
-  StdPairKV *pair = data->pair;
+  BT_Pair *pair = data->pair;
   free(pair->key);
   pair->key = NULL;
   free(pair->value);
@@ -74,16 +122,24 @@ void btree_delete_node_data(Node *n) {
   data = NULL;
 }
 
-void btree_delete(B_Tree *bt) {
-  if(bt == NULL) handle_error("trying to delete a NULL address");
-  if(bt->root != NULL) {
-    node_delete_recursive(bt->root, btree_delete_node_data);
-    bt->root = NULL;
+/*
+* deleting all content of map allocated on heap
+*
+*/
+void btmap_delete(BT_Map *map) {
+  if(map == NULL) handle_error("trying to delete a NULL address");
+  if(map->root != NULL) {
+    node_delete_recursive(map->root, btmap_delete_node_data);
+    map->root = NULL;
   }
-  free(bt);
-  bt = NULL;
+  free(map);
+  map = NULL;
 }
 
+/*
+* returns the height of the node, the greater path till a leaf(node without children)
+*
+*/
 int8_t node_get_height(Node *n) {
   if(n == NULL) return -1;
   NodeData *data;
@@ -91,31 +147,51 @@ int8_t node_get_height(Node *n) {
   return data->height;
 }
 
-StdPairKV *node_get_pair(Node *n) {
+/*
+* returns the pair of n
+*
+*/
+BT_Pair *node_get_pair(Node *n) {
   if(n == NULL) return NULL;
   NodeData *data;
   node_get_value(n, &data, sizeof(NodeData *));
   return data->pair;
 }
 
-void pair_get_key(StdPairKV *pair, void *key_to_ret, size_t key_size) {
+/*
+* copy the key of n's pair to key_to_ret
+*
+*/
+void pair_get_key(BT_Pair *pair, void *key_to_ret, size_t key_size) {
   if(pair == NULL) handle_error("trying to get key from a NULL pair");
   memcpy(key_to_ret, pair->key, key_size);
 }
 
-void pair_get_value(StdPairKV *pair, void *value_to_ret, size_t value_size) {
+/*
+* copy the value of n's pair to value_to_ret
+*
+*/
+void pair_get_value(BT_Pair *pair, void *value_to_ret, size_t value_size) {
   if(pair == NULL) handle_error("trying to get value from a NULL pair");
   memcpy(value_to_ret, pair->value, value_size);
 }
 
-void pair_get_key_and_value(StdPairKV *pair, void *key_to_ret, void *value_to_ret, size_t key_size, size_t value_size) {
+/*
+* copy both key and value of a pair to key_to_ret and value_to_ret, respectively
+*
+*/
+void pair_get_key_and_value(BT_Pair *pair, void *key_to_ret, void *value_to_ret, size_t key_size, size_t value_size) {
   pair_get_key(pair, key_to_ret, key_size);
   pair_get_value(pair, value_to_ret, value_size);
 }
 
-Node *search_aux(Node *node, StdPairKV *pair, size_t key_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
+/*
+* auxiliar function, to recursively search for some key
+*
+*/
+Node *search_aux(Node *node, BT_Pair *pair, size_t key_size, int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
   if(node == NULL) return NULL;
-  StdPairKV *node_pair = node_get_pair(node);
+  BT_Pair *node_pair = node_get_pair(node);
 
   int result = cmp(pair, node_pair, key_size);
   if(!result) 
@@ -126,26 +202,41 @@ Node *search_aux(Node *node, StdPairKV *pair, size_t key_size, int (*cmp)(StdPai
     return search_aux(node_get_neighbour(node, LEFT), pair, key_size, cmp);
 }
 
-Node *btree_search_key(B_Tree *bt, void *key, size_t key_size) {
-  StdPairKV *pair = (StdPairKV *) malloc(sizeof(StdPairKV));
+/*
+* returns the node with the searched key, or NULL if not found
+*
+*/
+Node *btmap_search_key(BT_Map *map, void *key, size_t key_size) {
+  BT_Pair *pair = (BT_Pair *) malloc(sizeof(BT_Pair));
   if(pair == NULL) handle_error("fail to create pair");
   pair->key = key;
-  Node *found_node = search_aux(bt->root, pair, key_size, bt->cmp);
+  Node *found_node = search_aux(map->root, pair, key_size, map->cmp);
   free(pair);
   return found_node;
 }
 
-int btree_get_value(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size) {
-  if(bt == NULL) handle_error("trying to get value with NULL address");
+/*
+* copy the value of the pair with the correspondent key
+* returns -1 -> key not found
+* returns 0 -> key found
+*/
+int btmap_get_value(BT_Map *map, void *key, size_t key_size, void *to_ret, size_t value_size) {
+  if(map == NULL) handle_error("trying to get value with NULL address");
 
-  Node *found_node = btree_search_key(bt, key, key_size);
+  Node *found_node = btmap_search_key(map, key, key_size);
   if(found_node == NULL) return -1;
-  StdPairKV *pair = node_get_pair(found_node);
+  BT_Pair *pair = node_get_pair(found_node);
   pair_get_value(pair, to_ret, value_size);
   return 0;
 }
 
-int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size) {
+/*
+* standard key comparing function, NULL is passed at btmap_create function this one is used by default
+* returns 0 if equal
+* returns 1 if the first is greater
+* returns -1 if the second is greater
+*/
+int btmap_std_cmp(BT_Pair *f, BT_Pair *s, size_t key_size) {
   u_int8_t bytes_f[key_size];
   u_int8_t bytes_s[key_size];
 
@@ -162,11 +253,16 @@ int btree_std_cmp(StdPairKV *f, StdPairKV *s, size_t key_size) {
 
 Node *node_right_rotate(Node *n);
 Node *node_left_rotate(Node *n);
-Node *balance_it_if_need(Node *n, int res, StdPairKV *to_balance, size_t key_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t));
+Node *balance_it_if_need(Node *n, int res, BT_Pair *to_balance, size_t key_size, int (*cmp)(BT_Pair *, BT_Pair *, size_t));
 
-Node *btree_insert_aux(Node *node, Node *to_insert, size_t key_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
+/*
+* auxiliar function, to recursively compare nodes till insert
+* returns NULL if the root has changed during the insertion,
+* that occurs when balancing the tree
+*/
+Node *btmap_insert_aux(Node *node, Node *to_insert, size_t key_size, int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
   NodeData *data_node, *data_to_insert;
-  StdPairKV *pair_node, *pair_to_insert;
+  BT_Pair *pair_node, *pair_to_insert;
   node_get_value(node, &data_node, sizeof(NodeData *));
   node_get_value(to_insert, &data_to_insert, sizeof(NodeData *));
   pair_node = data_node->pair;
@@ -174,8 +270,8 @@ Node *btree_insert_aux(Node *node, Node *to_insert, size_t key_size, int (*cmp)(
 
   int result = cmp(pair_to_insert, pair_node, key_size);
   if(!result) {
-    btree_delete_node_data(node);
-    node_set_value(node, &data_node, &data_to_insert, sizeof(StdPairKV *));
+    btmap_delete_node_data(node);
+    node_set_value(node, &data_node, &data_to_insert, sizeof(BT_Pair *));
     node_delete(to_insert, NULL);
   }
   else if(result > 0) {
@@ -183,32 +279,40 @@ Node *btree_insert_aux(Node *node, Node *to_insert, size_t key_size, int (*cmp)(
     if(right == NULL) 
       node_set_double_link_at(node, to_insert, RIGHT, PARENT);
     else
-      btree_insert_aux(right, to_insert, key_size, cmp);
+      btmap_insert_aux(right, to_insert, key_size, cmp);
   }
   else {
     Node *left = node_get_neighbour(node, LEFT);
     if(left == NULL) 
       node_set_double_link_at(node, to_insert, LEFT, PARENT);
     else
-      btree_insert_aux(left, to_insert, key_size, cmp);
+      btmap_insert_aux(left, to_insert, key_size, cmp);
   }
 
   return balance_it_if_need(node, result, pair_to_insert, key_size, cmp);
 }
 
-void btree_insert(B_Tree *bt, void *new_key, size_t key_size, void *new_value, size_t value_size) {
-  if(bt == NULL) handle_error("trying to insert with NULL address");
+/*
+* insert a key and a value as a pair on map
+*
+*/
+void btmap_insert(BT_Map *map, void *new_key, size_t key_size, void *new_value, size_t value_size) {
+  if(map == NULL or new_key == NULL or new_value == NULL) handle_error("trying to insert with NULL addresses");
 
-  Node *to_insert = btree_node_create(new_key, key_size, new_value, value_size);
-  if(bt->root == NULL)
-    bt->root = to_insert;
+  Node *to_insert = btmap_node_create(new_key, key_size, new_value, value_size);
+  if(map->root == NULL)
+    map->root = to_insert;
   else {
-    Node *n = btree_insert_aux(bt->root, to_insert, key_size, bt->cmp);
-    if(n!= NULL) bt->root = n; //root changed by rotations
+    Node *n = btmap_insert_aux(map->root, to_insert, key_size, map->cmp);
+    if(n!= NULL) map->root = n; //root changed by rotations
   }
-  bt->vertices++;
+  map->vertices++;
 }
 
+/*
+* recursively search for the min key after node
+*
+*/
 Node *get_min(Node *node) {
   Node *min = node_get_neighbour(node, LEFT);
   if(min == NULL) return node;
@@ -216,16 +320,18 @@ Node *get_min(Node *node) {
 }
 
 /*
+* remove a pair from the map and copy the value of the removed key to to_ret
 * return 1 if the tree is empty
 * return 0 if removed succesfully
 * return -1 if the key was not in the tree
 */
-int btree_remove(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t value_size) {
-  if(!bt->vertices) return 1;
+int btmap_remove(BT_Map *map, void *key, size_t key_size, void *to_ret, size_t value_size) {
+  if(map == NULL or key == NULL or to_ret == NULL) handle_error("trying to remove with a NULL address");
+  if(!map->vertices) return 1;
 
-  Node *found_node = btree_search_key(bt, key, key_size);
+  Node *found_node = btmap_search_key(map, key, key_size);
   if(found_node == NULL) return -1;
-  StdPairKV *pair_to_get_value = node_get_pair(found_node);
+  BT_Pair *pair_to_get_value = node_get_pair(found_node);
   pair_get_value(pair_to_get_value, to_ret, value_size);
   
   Node *parent, *right, *left;
@@ -235,20 +341,20 @@ int btree_remove(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t va
   
   if(parent == NULL) { //head deleted
     if(right == NULL and left == NULL) //all nodes will be removed
-      bt->root = NULL;
+      map->root = NULL;
     else if(right == NULL){
-      bt->root = left;
+      map->root = left;
       node_remove_link_at(left, PARENT);
     }
     else if(left == NULL) {
-      bt->root = right;
+      map->root = right;
       node_remove_link_at(right, PARENT);
     }
     else {
-      bt->root = right;
+      map->root = right;
       node_remove_link_at(right, PARENT);
       node_remove_link_at(left, PARENT);
-      btree_insert_aux(right, left, key_size, bt->cmp);
+      btmap_insert_aux(right, left, key_size, map->cmp);
     }
   }
   else {
@@ -260,7 +366,7 @@ int btree_remove(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t va
       node_swap_neighbours(right, found_node, PARENT, PARENT);
     else {
       //swapping the value of the min node on the right of found_node with the value on found_node
-      StdPairKV *min_pair, *returned_pair;
+      BT_Pair *min_pair, *returned_pair;
       Node *min_at_right = get_min(right);
       Node *min_parent = node_get_neighbour(min_at_right, PARENT);
       if(min_parent == found_node)
@@ -269,25 +375,33 @@ int btree_remove(B_Tree *bt, void *key, size_t key_size, void *to_ret, size_t va
         node_swap_neighbours(min_at_right, min_parent, RIGHT, LEFT); //if found_node is not the parent min_at_right is the left child of his parent
       
       returned_pair = node_get_pair(found_node);
-      node_set_value(min_at_right, &min_pair, &returned_pair, sizeof(StdPairKV *));
-      node_set_value(found_node, &returned_pair, &min_pair, sizeof(StdPairKV *));
+      node_set_value(min_at_right, &min_pair, &returned_pair, sizeof(BT_Pair *));
+      node_set_value(found_node, &returned_pair, &min_pair, sizeof(BT_Pair *));
       found_node = min_at_right; //to delete the min_at_right in place of found_node
     }
   }
-  node_delete(found_node, btree_delete_node_data);
-  bt->vertices--;
+  node_delete(found_node, btmap_delete_node_data);
+  map->vertices--;
   return 0;
 }
 
-unsigned get_num_pairs(B_Tree *bt) {
-  if(bt == NULL) handle_error("trying to get the num of pairs on a NULL address");
+/*
+* returns the number of pairs that exist on that map
+*
+*/
+unsigned btmap_get_num_pairs(BT_Map *map) {
+  if(map == NULL) handle_error("trying to get the num of pairs on a NULL address");
 
-  return bt->vertices;
+  return map->vertices;
 }
 
-void visit_aux(Node *node, void (*custom_func)(StdPairKV *)) {
+/*
+* auxiliar function to recursively visit all pair of the map
+*
+*/
+void visit_aux(Node *node, void (*custom_func)(BT_Pair *)) {
   if(node == NULL) return;
-  StdPairKV *pair = node_get_pair(node);
+  BT_Pair *pair = node_get_pair(node);
   custom_func(pair);
   visit_aux(node_get_neighbour(node, LEFT), custom_func);
   visit_aux(node_get_neighbour(node, RIGHT), custom_func);
@@ -297,18 +411,26 @@ void visit_aux(Node *node, void (*custom_func)(StdPairKV *)) {
 * this function pass through all pairs and calls the custom_func on every pair
 *
 */
-void btree_pairs_visit(B_Tree *bt, void (*custom_func)(StdPairKV *)) {
-  if(bt == NULL) handle_error("trying to visit a NULL address");
-  visit_aux(bt->root, custom_func);
+void btmap_pairs_visit(BT_Map *map, void (*custom_func)(BT_Pair *)) {
+  if(map == NULL) handle_error("trying to visit a NULL address");
+  visit_aux(map->root, custom_func);
 }
 
-StdPairKV *btree_get_pair(B_Tree *bt, void *key, size_t key_size) { 
-  Node *found = btree_search_key(bt, key, key_size);
+/*
+* returns the pair with the specific key
+*
+*/
+BT_Pair *btmap_get_pair(BT_Map *map, void *key, size_t key_size) { 
+  Node *found = btmap_search_key(map, key, key_size);
   return node_get_pair(found);;
 }
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+/*
+* function used to balance the tree rotate to left over a node
+*
+*/
 Node *node_left_rotate(Node *n) {
   Node *return_node = NULL;
   Node *rn = node_get_neighbour(n, RIGHT);
@@ -339,6 +461,11 @@ Node *node_left_rotate(Node *n) {
 
   return return_node;
 }
+
+/*
+* function used to balance the tree rotate to right over a node
+*
+*/
 Node *node_right_rotate(Node *n) {
   Node *return_node = NULL;
   Node *ln = node_get_neighbour(n, LEFT);
@@ -368,7 +495,11 @@ Node *node_right_rotate(Node *n) {
   return return_node;
 }
 
-Node *balance_it_if_need(Node *n, int res, StdPairKV *to_balance, size_t key_size, int (*cmp)(StdPairKV *, StdPairKV *, size_t)) {
+/*
+* function to check if the node need to balance and call the
+* required rotations
+*/
+Node *balance_it_if_need(Node *n, int res, BT_Pair *to_balance, size_t key_size, int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
   if(!res) return NULL;
 
   NodeData *data;
@@ -382,7 +513,7 @@ Node *balance_it_if_need(Node *n, int res, StdPairKV *to_balance, size_t key_siz
   int8_t balance = abs(left_h - right_h);
   if(balance < 2) return return_node; //balanced
 
-  StdPairKV *pair;
+  BT_Pair *pair;
   if(res > 0) { //inserted at right
     pair = node_get_pair(right);
     int side = cmp(to_balance, pair, key_size);

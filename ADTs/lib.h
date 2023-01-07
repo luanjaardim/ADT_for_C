@@ -2,7 +2,7 @@
 #define LIB_DEF
 
 #include "array.h"
-#include "b_tree.h"
+#include "bt_map.h"
 #include "node.h"
 
 #endif /* LIB_DEF */
