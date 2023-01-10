@@ -25,7 +25,7 @@ size_t define_type(StdDataTypes type) {
   if(type == FLOAT_TYPE) return sizeof(float);
   if(type == DOUBLE_TYPE) return sizeof(double);
   if(type == LONG_LONG_TYPE) return sizeof(long long);
-  if(type == POINTER_TYPE) return sizeof(void *);
+  return sizeof(void *);
 }
 
 /*

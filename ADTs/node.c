@@ -65,19 +65,19 @@ Node *node_create_null(size_t data_size) {
 * if using, all nodes must be delete
 * delete_data is a custom function, if the node element needs deallocation, pass NULL if doesn't
 */
-void node_delete(Node *n, void (*delete_data)(Node *)) {
+void node_delete(Node *n, void (*delete_data)(void *)) {
   if(n == NULL) handle_error("trying to delete a NULL node");
 
   free(n->neighbours);
   n->neighbours = NULL;
-  if(delete_data != NULL) delete_data(n);
+  if(delete_data != NULL) delete_data(n->data);
   free(n->data);
   n->data = NULL;
   free(n);
   n = NULL;
 }
 
-void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes, void (*delete_data)(Node *)) {
+void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes, void (*delete_data)(void *)) {
   visited[n->id] = 1;
   Node *tmp;
   for(int i=0; i<n->num_neighbours; i++) {
@@ -94,7 +94,7 @@ void node_delete_recursive_aux(Node *n, u_int8_t visited[], int *deleted_nodes, 
 * deletes all nodes of a tree and returns the number of deleted nodes
 * delete_data is a custom function, if the node element needs deallocation, pass NULL if doesn't
 */
-unsigned node_delete_recursive(Node *n, void (*delete_data)(Node *)) {
+unsigned node_delete_recursive(Node *n, void (*delete_data)(void *)) {
   if(n == NULL) handle_error("trying to delete a NULL node");
 
   u_int8_t visited[num_nodes];
@@ -292,6 +292,15 @@ unsigned node_get_num_neighbours(Node *n) {
   if(n == NULL) handle_error("trying to get number of neighbours of a NULL address");
 
   return n->num_neighbours;
+}
+
+/*
+* returns the data pointer of n, use it only when really need
+*
+*/
+void *node_data_pnt(Node *n) {
+  if(n == NULL) handle_error("trying to get the data pointer of a NULL address");
+  return n->data;
 }
 
 void node_extend_link();

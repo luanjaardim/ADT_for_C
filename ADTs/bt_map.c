@@ -107,19 +107,19 @@ BT_Map *btmap_create_with_pair(void *key_root, size_t key_size, void *value_root
 * function passed to node_delete, custom deleting the data
 *
 */
-void btmap_delete_node_data(Node *n) {
-  if(n == NULL) handle_error("trying to delete a NULL node");
-  NodeData *data;
-  node_get_value(n, &data, sizeof(NodeData *));
-  BT_Pair *pair = data->pair;
+void btmap_delete_node_data(void *data) {
+  if(data == NULL) handle_error("trying to delete a NULL node");
+  NodeData *node_data;
+  memcpy(&node_data, data, sizeof(NodeData *));
+  BT_Pair *pair = node_data->pair;
   free(pair->key);
   pair->key = NULL;
   free(pair->value);
   pair->value = NULL;
   free(pair);
   pair = NULL;
-  free(data);
-  data = NULL;
+  free(node_data);
+  node_data = NULL;
 }
 
 /*
@@ -270,7 +270,7 @@ Node *btmap_insert_aux(Node *node, Node *to_insert, size_t key_size, int (*cmp)(
 
   int result = cmp(pair_to_insert, pair_node, key_size);
   if(!result) {
-    btmap_delete_node_data(node);
+    btmap_delete_node_data(node_data_pnt(node));
     node_set_value(node, &data_node, &data_to_insert, sizeof(BT_Pair *));
     node_delete(to_insert, NULL);
   }

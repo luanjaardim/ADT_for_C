@@ -14,8 +14,8 @@ typedef struct Node Node;
 
 Node *node_create(void *value, size_t data_size);
 Node *node_create_null(size_t data_size);
-void node_delete(Node *n, void (*delete_data)(Node *));
-unsigned node_delete_recursive(Node *n, void (*delete_data)(Node *));
+void node_delete(Node *n, void (*delete_data)(void *));
+unsigned node_delete_recursive(Node *n, void (*delete_data)(void *));
 void node_get_value(Node *n, void *to_ret, size_t data_size);
 void node_set_value(Node *n, void *to_ret, void *to_add, size_t data_size);
 void node_set_link(Node *n, Node *n2);
@@ -28,6 +28,7 @@ unsigned node_remove_link(Node *node, Node *node_to_remove);
 Node *node_remove_link_at(Node *n, unsigned position);
 void node_swap_neighbours(Node *n1, Node *n2, unsigned first_position, unsigned second_position);
 unsigned node_get_num_neighbours(Node *n);
+void *node_data_pnt(Node *n);
 
 #ifndef INIT_NODE_TYPE
 #define INIT_NODE_TYPE(name, type) \
@@ -48,7 +49,6 @@ unsigned node_get_num_neighbours(Node *n);
     node_set_value(n, (void *) &val, (void *) &value, name##_data_size); \
     return val; \
   }
-
 #endif /* INIT_NODE_TYPE */
 
 #endif /* NODE_LIB_DEF */
