@@ -14,9 +14,6 @@ typedef struct Array {
   void *data;
 } Array;
 
-Array **global_garbage_array = NULL;
-unsigned garbage_count = 0, garbage_cap = INITIAL_CAP;
-
 /*
 * return an array instance for the data type
 *
@@ -32,21 +29,6 @@ Array *array_create(size_t data_size) {
   ar->data_size = data_size;
   ar->capacity = inital_capacity;
   ar->len = 0;
-
-  if(global_garbage_array == NULL) {
-    global_garbage_array = (Array **) malloc(sizeof(Array *) * INITIAL_CAP);
-    if(global_garbage_array == NULL) handle_error("fail to malloc global garbage");
-    global_garbage_array[garbage_count++] = ar;
-
-  } else {
-    if(garbage_count == garbage_cap) {
-      garbage_cap *= 2;
-      global_garbage_array = (Array **) realloc(global_garbage_array, sizeof(Array *) * garbage_cap);
-      if(global_garbage_array == NULL) handle_error("fail to realloc global garbage");
-    }
-    global_garbage_array[garbage_count++] = ar;
-  }
-
   return ar;
 }
 
@@ -68,35 +50,12 @@ void maybe_realloc_data(Array *ar) {
 *
 */
 void array_delete(Array *ar) {
-  Array **pnt = global_garbage_array;
-  unsigned len = garbage_count;
-  for(int i = 0; i < len; i++) {
-    if(pnt[i] == ar) {
-      free(ar->data);
-      ar->data = NULL;
-      free(ar);
-      ar = NULL;
-      pnt[i] = NULL;
-    }
-  }
-}
-
-/*
-* this function use an global array that have all the address of arrays on heap
-* to then free them all
-*/
-void array_delete_all() {
-  Array **pnt = global_garbage_array;
-  unsigned len = garbage_count;
-  for(int i = 0; i < len; i++) {
-    if(pnt[i] == NULL) continue;
-
-    free(pnt[i]->data);
-    pnt[i]->data = NULL;
-    free(pnt[i]);
-    pnt[i] = NULL;
-  }
-  free(global_garbage_array);
+  if(ar == NULL) handle_error("trying to delete a NULL array");
+  if(ar->data == NULL) handle_error("trying to delete a NULL data pointer");
+  free(ar->data);
+  ar->data = NULL;
+  free(ar);
+  ar = NULL;
 }
 
 /*
@@ -257,6 +216,15 @@ unsigned array_len(Array *ar) {
 }
 
 /*
+* returns the data size of the array
+*
+*/
+size_t array_data_size(Array *ar) {
+  if(ar == NULL) handle_error("NULL array pointer");
+  return ar->data_size;
+}
+
+/*
 * returns the pointer to the data alocated on heap
 *
 */
@@ -333,7 +301,7 @@ void array_sort_aux(Array *ar, void *tmp, int (*cmp)(Array *, unsigned, unsigned
 
 /*
 * Function to sort elements of the array
-* the function pointer cmp can be passed as array_std_cmp to standard comparing
+* the function pointer cmp can be passed as NULL to standard comparing
 * or pass customs functions to compare the elements, see the array_std_cmp to properly implement it
 */
 void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned)) {
@@ -342,6 +310,7 @@ void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned)) {
   unsigned l = 0, r = ar->len - 1;
   if(l>=r) 
     return;
+  if(cmp == NULL) cmp = array_std_cmp;
 
   unsigned data_size = (unsigned) ar->data_size;
   unsigned i = l * data_size, j = r * data_size;

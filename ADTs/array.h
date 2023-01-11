@@ -29,7 +29,6 @@ typedef struct Array Array;
 
 Array *array_create(size_t data_size);
 void array_delete(Array *ar);
-void array_delete_all();
 void array_set_impl(Array *ar, void *to_add, unsigned index);
 void array_get_impl(Array *ar, void *to_cpy, unsigned index);
 void array_insert_at_impl(Array *ar, void *to_add, unsigned index);
@@ -40,20 +39,21 @@ void array_remove_at_impl(Array *ar, void *to_cpy, unsigned index);
 void array_remove_fast_at_impl(Array *ar, void *to_cpy, unsigned index);
 void array_pop_impl(Array *ar, void *to_cpy);
 unsigned array_len(Array *ar);
+size_t array_data_size(Array *ar);
 void *array_data_pointer(Array *ar);
 int array_std_cmp(Array *ar, unsigned ind1, unsigned ind2);
 void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned));
 
-//some defines for easier use of functions
-#define arr_set(ar, var, ind) array_set_impl(ar, (void *) &(var), ind)
-#define arr_get(ar, var, ind) array_get_impl(ar, (void *) &(var), ind)
-#define arr_insert_at(ar, var, ind) array_insert_at_impl(ar, (void *) &(var), ind)
-#define arr_insert_fast_at(ar, var, ind) array_insert_fast_at_impl(ar, (void *) &(var), ind)
-#define arr_append(ar, var) array_append_impl(ar, (void *) &(var))
-#define arr_extend(ar, pnt, len) array_extend_impl(ar, (void *) pnt, len)
-#define arr_remove_at(ar, var, ind) array_remove_at(ar, (void *) &(var), ind)
-#define arr_remove_fast_at(ar, var, ind) array_remove_fast_at_impl(ar, (void *) &(var), ind)
-#define arr_pop(ar, var) array_pop_impl(ar, (void *) &(var))
+//some defines for easier use of functions, uncomment if want
+// #define arr_set(ar, var, ind) array_set_impl(ar, (void *) &(var), ind)
+// #define arr_get(ar, var, ind) array_get_impl(ar, (void *) &(var), ind)
+// #define arr_insert_at(ar, var, ind) array_insert_at_impl(ar, (void *) &(var), ind)
+// #define arr_insert_fast_at(ar, var, ind) array_insert_fast_at_impl(ar, (void *) &(var), ind)
+// #define arr_append(ar, var) array_append_impl(ar, (void *) &(var))
+// #define arr_extend(ar, pnt, len) array_extend_impl(ar, (void *) pnt, len)
+// #define arr_remove_at(ar, var, ind) array_remove_at(ar, (void *) &(var), ind)
+// #define arr_remove_fast_at(ar, var, ind) array_remove_fast_at_impl(ar, (void *) &(var), ind)
+// #define arr_pop(ar, var) array_pop_impl(ar, (void *) &(var))
 
 #define array_print_elements(ar, format, type) \
       for(int element = 0; element < array_len(ar); element++) { \
@@ -102,6 +102,12 @@ void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned));
       type val; \
       array_pop_impl(ar, (void *) &val); \
       return val; \
+    } \
+    void name##_array_delete_data(Array *ar, void (*delete_data)(type)) {\
+      unsigned len = array_len(ar); \
+      for(int ind = 0; ind < len; ind++) { \
+        delete_data(name##_array_get(ar, ind)); \
+      } \
     }
   #endif /* INIT_ARRAY_TYPE */
 
