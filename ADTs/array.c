@@ -185,7 +185,7 @@ void array_remove_fast_at_impl(Array *ar, void *to_cpy, unsigned index) {
   void *remove_position = ar->data + (index * ar->data_size);
   void *last_element_position = ar->data + ((ar->len - 1) * ar->data_size);
 
-  memcpy(to_cpy, last_element_position, ar->data_size);
+  memcpy(to_cpy, remove_position, ar->data_size);
   memmove(remove_position, last_element_position, ar->data_size);
 
   ar->len--;
