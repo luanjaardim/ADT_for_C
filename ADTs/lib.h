@@ -5,6 +5,7 @@
 #include "list.h"
 #include "bt_map.h"
 #include "heap.h"
+#include "deque.h"
 #include "node.h"
 #include "gnode.h"
 
