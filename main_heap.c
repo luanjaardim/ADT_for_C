@@ -11,8 +11,25 @@
 #define or ||
 
 #include "ADTs/lib.h"
-// #include "ADTs/heap.c"
-// #include "ADTs/array.c"
+
+typedef struct Type {
+  int *sla;
+} Type;
+
+INIT_HEAP_TYPE(opa, Type *)
+
+Type *create() {
+  Type *t = malloc(sizeof(Type));
+  t->sla = malloc(sizeof(int));
+  return t;
+}
+
+void custom_delete(void *data) {
+  Type *t;
+  memcpy(&t, data, sizeof(Type *));
+  free(t->sla);
+  free(t);
+}
 
 INIT_HEAP_TYPE(i, int)
 INIT_ARRAY_TYPE(i, int)
@@ -49,10 +66,24 @@ int main(int argc, const char **argv) {
 
   heap_change_status(h);
   debug(h);
+  int oi;
   i_heap_put(h, 0);
   debug(h);
-  
-  heap_delete(&h); 
+  i_heap_pop(h, &oi);
+  i_heap_pop(h, &oi);
+
+  i_heap_get_top(h, &oi);
+  printf("%d\n", oi);
+
+  heap_delete(h, NULL);
+
+  Heap *h2 = opa_heap_create(0, NULL);
+
+  opa_heap_put(h2, create());
+  opa_heap_put(h2, create());
+  opa_heap_put(h2, create());
+
+  heap_delete(h2, custom_delete); 
 
   return 0;
 }

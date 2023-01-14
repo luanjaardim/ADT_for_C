@@ -30,15 +30,25 @@ Heap *heap_create(size_t data_size, bool heap_status, int (*cmp)(void *, void *,
 }
 
 /*
-* missing custom delete data
-*
+* delete the heap and it's data, a custom delete_data function can be passed for custom types
+* stored on heap that need deallocation
 */
-void heap_delete(Heap **h) {
+void heap_delete(Heap *h, void (*delete_data)(void *)) {
   if(h == NULL) handle_error("trying to delete with a NULL address");
 
-  array_delete((*h)->elements);
-  free(*h);
-  *h = NULL;
+  if(delete_data != NULL) {
+    unsigned len = array_len(h->elements);
+    size_t data_size = array_data_size(h->elements);
+    u_int8_t val[data_size];
+
+    for(int elem = 0; elem < len; elem++) {
+      array_get_impl(h->elements, (void *) val, elem);
+      delete_data((void *) val);
+    }
+  }
+  array_delete(h->elements);
+  free(h);
+  h = NULL;
 }
 
 /*
