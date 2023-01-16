@@ -40,6 +40,10 @@ int main(int argc, const char **argv) {
   while(sla_deque_pop_back(dq2, &c) != -1) {
     printf("%c\n", c);
   }
+  sla_deque_push_front(dq2, 'c');
+  sla_deque_pop_back(dq2, NULL);
+  if(deque_is_empty(dq2)) printf("it is\n");
+
   deque_delete(dq2);
 
   return 0;

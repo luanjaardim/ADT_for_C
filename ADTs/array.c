@@ -63,7 +63,7 @@ void array_delete(Array *ar) {
 *
 */
 void array_set_impl(Array *ar, void *to_add, unsigned index) {
-  if(ar == NULL) handle_error("trying to set at a NULL array");
+  if(ar == NULL or to_add == NULL) handle_error("trying to set at with NULL addresses");
   if(index >= ar->len) handle_error("set: invalid index");
 
   void *set_position = ar->data + (index * ar->data_size);
@@ -76,7 +76,7 @@ void array_set_impl(Array *ar, void *to_add, unsigned index) {
 *
 */
 void array_get_impl(Array *ar, void *to_cpy, unsigned index) {
-  if(ar == NULL) handle_error("trying to get at a NULL array");
+  if(ar == NULL or to_cpy == NULL) handle_error("trying to get at with NULL addresses");
   if(index >= ar->len) handle_error("get: invalid index");
 
   void *get_position = ar->data + (index * ar->data_size);
@@ -152,11 +152,10 @@ void array_extend_impl(Array *ar, void *pnt, unsigned len) {
 
 /*
 * remove an element of the array without break with the order
-* the removed element is copied to to_cpy
+* the removed element is copied to to_cpy, pass NULL if don't want the copy
 */
 void array_remove_at_impl(Array *ar, void *to_cpy, unsigned index) {
   if(ar == NULL) handle_error("trying to remove at a NULL array");
-  if(to_cpy == NULL) handle_error("trying to copy the removed address to a NULL address");
   if(index >= ar->len) handle_error("remove_at: invalid index");
 
   void *remove_position = ar->data + (index * ar->data_size);
@@ -164,7 +163,7 @@ void array_remove_at_impl(Array *ar, void *to_cpy, unsigned index) {
   //-1 because if index is the last position(ar->len - 1) it should not move any bytes
   size_t bytes_to_move = (ar->len - 1 - index) * ar->data_size;
 
-  memcpy(to_cpy, remove_position, ar->data_size);
+  if(to_cpy != NULL) memcpy(to_cpy, remove_position, ar->data_size);
   //moving to remove_position everything after that
   memmove(remove_position, 
           remove_position + ar->data_size,
@@ -175,17 +174,16 @@ void array_remove_at_impl(Array *ar, void *to_cpy, unsigned index) {
 
 /*
 * removes faster an element at some position by swapping it with the last element of the array
-* the removed element is copied to to_cpy
+* the removed element is copied to to_cpy, pass NULL if don't want the copy
 */
 void array_remove_fast_at_impl(Array *ar, void *to_cpy, unsigned index) {
   if(ar == NULL) handle_error("trying to remove at a NULL array");
-  if(to_cpy == NULL) handle_error("trying to copy the removed address to a NULL address");
   if(index >= ar->len) handle_error("remove_at: invalid index");
 
   void *remove_position = ar->data + (index * ar->data_size);
   void *last_element_position = ar->data + ((ar->len - 1) * ar->data_size);
 
-  memcpy(to_cpy, remove_position, ar->data_size);
+  if(to_cpy != NULL)  memcpy(to_cpy, remove_position, ar->data_size);
   memmove(remove_position, last_element_position, ar->data_size);
 
   ar->len--;
@@ -193,16 +191,16 @@ void array_remove_fast_at_impl(Array *ar, void *to_cpy, unsigned index) {
 
 /*
 * removing the element on the last position of the array
-* the removed element is copied to to_cpy
+* the removed element is copied to to_cpy, pass NULL if don't want the copy
 */
 void array_pop_impl(Array *ar, void *to_cpy) {
   if(ar == NULL) handle_error("trying to remove at a NULL array");
-  if(to_cpy == NULL) handle_error("trying to copy the removed address to a NULL address");
   if(!ar->len) handle_error("trying to pop at empty array");
 
-  void *last_element_position = ar->data + ((ar->len - 1) * ar->data_size);
-  memcpy(to_cpy, last_element_position, ar->data_size);
-
+  if(to_cpy != NULL) {
+    void *last_element_position = ar->data + ((ar->len - 1) * ar->data_size);
+    memcpy(to_cpy, last_element_position, ar->data_size);
+  }
   ar->len--;
 }
 
@@ -343,4 +341,67 @@ void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned)) {
   array_sort_aux(ar, tmp, cmp, j + 1, r);
 
   free(tmp);
+}
+
+/*
+* swap the positions of two array's elements
+*
+*/
+void array_swap_elements(Array *ar, unsigned ind1, unsigned ind2) {
+  if(ar == NULL) handle_error("trying to swap elements of a NULL array");
+  if(ind1 >= ar->len or ind2 >= ar->len) handle_error("swap elements: invalid index");
+  
+  u_int8_t tmp[ar->data_size];
+  void *pos_ind1 = ar->data + (ind1 * ar->data_size), *pos_ind2 = ar->data + (ind2 * ar->data_size);
+
+  memcpy((void *) tmp, pos_ind1, ar->data_size);
+  memmove(pos_ind1, pos_ind2, ar->data_size);
+  memcpy(pos_ind2, (void *) tmp, ar->data_size);
+}
+
+/*
+* appends with a element maintaining the array sorted, it must be previously sorted 
+* cmp is the custom function to compare elements of the array
+*
+*/
+void array_append_with_sort(Array *ar, void *to_add, int (*cmp)(Array *, unsigned, unsigned)) {
+  if(ar == NULL or to_add == NULL) handle_error("trying to append with sort with NULL addresses");
+  if(cmp == NULL) cmp = array_std_cmp;
+
+  array_append_impl(ar, to_add);
+  int tmp = (int) array_len(ar) - 2;
+
+  int result;
+  while(tmp >= 0) {
+    result = cmp(ar, tmp, tmp + 1);
+    if(result > 0) array_swap_elements(ar, tmp, tmp + 1);
+    else break;
+    tmp--;
+  }
+}
+
+/*
+* returns the index of to_search if it's an element of the array and -1 if not
+*
+*/
+int array_bin_search(Array *ar, void *to_search, int (*cmp)(Array *, unsigned, unsigned)) {
+  if(ar == NULL or to_search == NULL) handle_error("trying to bin_search with NULL addresses");
+  if(cmp == NULL) cmp = array_std_cmp;
+
+  unsigned r = array_len(ar) - 1, l = 0;
+  array_append_impl(ar, to_search); //is popped at the end
+
+  int mid, result, last = r + 1;
+  while(l <= r) {
+    mid = (l + r)/2;
+    result = cmp(ar, mid, last);
+    if(!result) {
+      array_pop_impl(ar, NULL); //change pop
+      return mid;
+    }
+    if(result < 0) l = mid + 1;
+    else r = mid - 1;
+  }
+  array_pop_impl(ar, NULL);
+  return -1;
 }

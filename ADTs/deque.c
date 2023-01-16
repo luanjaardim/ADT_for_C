@@ -96,7 +96,6 @@ void deque_push_front(Deque *dq, void *to_add, size_t data_size) {
 * push a element at the back of the Deque
 *
 */
-
 void deque_push_back(Deque *dq, void *to_add, size_t data_size) {
   if(deque_is_empty(dq)) {
     push_to_empty(dq, to_add, data_size);
@@ -109,12 +108,13 @@ void deque_push_back(Deque *dq, void *to_add, size_t data_size) {
 }
 
 /*
-* remove a element at the front of the Deque
+* remove a element at the front of the Deque and copy it to to_ret, pass NULL if don't want a copy
 * return 0 if the pop succed, and -1 if not(empty)
 */
 
 int deque_pop_front(Deque *dq, void *to_ret, size_t data_size) {
   if(deque_is_empty(dq)) return -1;
+  
   Node *new_first = node_get_neighbour(dq->first, NEXT);
   if(to_ret != NULL) node_get_value(dq->first, to_ret, data_size);
   node_delete(dq->first, dq->delete_data);

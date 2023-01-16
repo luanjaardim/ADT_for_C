@@ -46,16 +46,13 @@ typedef enum LinkedNodes {
 * cmp can receive a custom function for comparing keys
 * if NULL is passed btmap_std_cmp is used by default
 */
-BT_Map *btmap_create(int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
+BT_Map *btmap_create() {
   BT_Map *new_tree = (BT_Map *) malloc(sizeof(BT_Map));
   if(new_tree == NULL) handle_error("fail to malloc the map");
 
   new_tree->root = NULL;
   new_tree->vertices = 0;
-  if(cmp == NULL)
-    new_tree->cmp = btmap_std_cmp;
-  else 
-    new_tree->cmp = cmp;
+  new_tree->cmp = btmap_std_cmp;
 
   return new_tree;
 }
@@ -91,14 +88,13 @@ Node *btmap_node_create(void *key, size_t key_size, void *value, size_t value_si
 * cmp can receive a custom function for comparing keys
 * if NULL is passed btmap_std_cmp is used by default
 */
-BT_Map *btmap_create_with_pair(void *key_root, size_t key_size, void *value_root, size_t value_size, int (*cmp)(BT_Pair *, BT_Pair *, size_t)) {
+BT_Map *btmap_create_with_pair(void *key_root, size_t key_size, void *value_root, size_t value_size) {
   BT_Map *new_tree = (BT_Map *) malloc(sizeof(BT_Map));
   if(new_tree == NULL) handle_error("fail to malloc map");
 
   new_tree->root = btmap_node_create(key_root, key_size, value_root, value_size);
   new_tree->vertices = 1;
-  if(cmp == NULL) new_tree->cmp = btmap_std_cmp;
-  else new_tree->cmp = cmp;
+  new_tree->cmp = btmap_std_cmp;
 
   return new_tree;
 }
@@ -221,7 +217,7 @@ Node *btmap_search_key(BT_Map *map, void *key, size_t key_size) {
 * returns 0 -> key found
 */
 int btmap_get_value(BT_Map *map, void *key, size_t key_size, void *to_ret, size_t value_size) {
-  if(map == NULL) handle_error("trying to get value with NULL address");
+  if(map == NULL or key == NULL or to_ret == NULL) handle_error("trying to get value with NULL addresses");
 
   Node *found_node = btmap_search_key(map, key, key_size);
   if(found_node == NULL) return -1;
@@ -320,19 +316,19 @@ Node *get_min(Node *node) {
 }
 
 /*
-* remove a pair from the map and copy the value of the removed key to to_ret
+* remove a pair from the map and copy the value of the removed key to to_ret, pass NULL if don't want the copy
 * return 1 if the tree is empty
 * return 0 if removed succesfully
 * return -1 if the key was not in the tree
 */
 int btmap_remove(BT_Map *map, void *key, size_t key_size, void *to_ret, size_t value_size) {
-  if(map == NULL or key == NULL or to_ret == NULL) handle_error("trying to remove with a NULL address");
+  if(map == NULL or key == NULL) handle_error("trying to remove with a NULL address");
   if(!map->vertices) return 1;
 
   Node *found_node = btmap_search_key(map, key, key_size);
   if(found_node == NULL) return -1;
   BT_Pair *pair_to_get_value = node_get_pair(found_node);
-  pair_get_value(pair_to_get_value, to_ret, value_size);
+  if(to_ret != NULL) pair_get_value(pair_to_get_value, to_ret, value_size);
   
   Node *parent, *right, *left;
   parent = node_get_neighbour(found_node, PARENT);

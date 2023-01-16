@@ -88,16 +88,15 @@ void list_append_impl(List *ll, void *to_add, StdDataTypes type) {
 }
 
 /*
-* removes the element at position and return it's value on to_ret
+* removes the element at position and copy it's value to to_ret, pass NULL if don't want the copy
 * 
 */
 void list_remove_impl(List *ll, void *to_ret, unsigned position) {
   if(ll == NULL) handle_error("trying to remove a NULL list");
-  if(to_ret == NULL) handle_error("trying to remove with a NULL address");
   if(position < 0 or position >= ll->len) { list_delete(ll); handle_error("position out of bound to remove"); }
 
   GNode *n = get_gnode_at_position(ll, position), *prev_n, *next_n;
-  gnode_get_value(n, to_ret);
+  if(to_ret != NULL) gnode_get_value(n, to_ret);
 
   next_n = gnode_get_next(n);
   prev_n = gnode_get_prev(n);
@@ -113,18 +112,21 @@ void list_remove_impl(List *ll, void *to_ret, unsigned position) {
 }
 
 /*
-* removes the last element of the list and return the value with to_ret
+* removes the last element of the list and copy the value to to_ret, pass NULL if don't want the copy
 * returns -1 if the list is empty, 0 if the pop occured
 *
 */
 int list_pop_impl(List *ll, void *to_ret) {
   if(ll == NULL) handle_error("trying to pop a NULL list");
-  if(to_ret == NULL) handle_error("trying to pop with a NULL address");
 
   GNode *gnode_to_pop = gnode_get_prev(ll->tail);
   if(gnode_to_pop == NULL) return -1; //empty
 
   char zero = 0;
+  u_int8_t val[8]; //max len
+  if(to_ret == NULL) {
+    to_ret = (void *) val;
+  }
   gnode_set_value(gnode_to_pop, to_ret, (void *) &zero, CHAR_TYPE);
   gnode_set_next(gnode_to_pop, NULL);
 

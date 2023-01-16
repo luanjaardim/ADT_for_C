@@ -43,6 +43,9 @@ size_t array_data_size(Array *ar);
 void *array_data_pointer(Array *ar);
 int array_std_cmp(Array *ar, unsigned ind1, unsigned ind2);
 void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned));
+void array_swap_elements(Array *ar, unsigned ind1, unsigned ind2);
+void array_append_with_sort(Array *ar, void *to_add, int (*cmp)(Array *, unsigned, unsigned));
+int array_bin_search(Array *ar, void *to_search, int (*cmp)(Array *, unsigned, unsigned));
 
 //some defines for easier use of functions, uncomment if want
 // #define arr_set(ar, var, ind) array_set_impl(ar, (void *) &(var), ind)
@@ -108,6 +111,9 @@ void array_sort(Array *ar, int (*cmp)(Array *, unsigned, unsigned));
       for(int ind = 0; ind < len; ind++) { \
         delete_data(name##_array_get(ar, ind)); \
       } \
+    } \
+    void name##_array_append_with_sort(Array *ar, type val, int (*cmp)(Array *, unsigned, unsigned)) { \
+      array_append_with_sort(ar, (void *) &val, cmp); \
     }
   #endif /* INIT_ARRAY_TYPE */
 

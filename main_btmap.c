@@ -28,15 +28,6 @@ INIT_BT_MAP_TYPE(sla, int, float)
 INIT_BT_MAP_TYPE(name, int, int)
 INIT_BT_MAP_TYPE(v, Stru_Key *, Stru_Val *)
 
-int my_key_cmp_func(BT_Pair *pair1, BT_Pair *pair2, size_t key_size) {
-  Stru_Key *k1, *k2;
-  pair_get_key(pair1, &k1, sizeof(Stru_Key *));
-  pair_get_key(pair2, &k2, sizeof(Stru_Key *));
-  if(*(k1->vec) == *(k2->vec)) return 0;
-  else if(*(k1->vec) > *(k2->vec)) return 1;
-  else return 0;
-}
-
 Stru_Key *create_key() {
   Stru_Key *key = malloc(sizeof(Stru_Key));
   key->vec = malloc(sizeof(int));
@@ -68,7 +59,7 @@ Node *btmap_search_key(BT_Map *bt, void *key, size_t key_size);
 int main(int argc, const char **argv) {
 
   int out;
-  BT_Map *bt = sla_btmap_create_with_pair(2, 5.5, NULL);
+  BT_Map *bt = sla_btmap_create_with_pair(2, 5.5);
   sla_btmap_insert(bt, 0, 4.2);
   sla_btmap_insert(bt, 1, 6.82);
 
@@ -88,7 +79,7 @@ int main(int argc, const char **argv) {
 
   btmap_delete(bt);
 
-  BT_Map *bt2 = name_btmap_create_with_pair(100, 100, NULL);
+  BT_Map *bt2 = name_btmap_create_with_pair(100, 100);
   name_btmap_insert(bt2, 200, 200);
   name_btmap_insert(bt2, 150, 150);
   name_btmap_insert(bt2, 300, 300);
@@ -104,13 +95,13 @@ int main(int argc, const char **argv) {
   printf("%d\n", ret);
   name_btmap_remove(bt2, 50, &ret);
   printf("%d\n", ret);
-  out = name_btmap_remove(bt2, 100, &ret);
+  out = name_btmap_remove(bt2, 100, NULL);
   printf("%d %d\n", ret, out); //not found to remove
 
   btmap_delete(bt2);
 
   //custom values for key or value, correctly deallocating them
-  BT_Map *my_tree = v_btmap_create_with_pair(create_key(), create_val(), my_key_cmp_func);
+  BT_Map *my_tree = v_btmap_create_with_pair(create_key(), create_val());
   v_btmap_insert(my_tree, create_key(), create_val());
   v_btmap_insert(my_tree, create_key(), create_val());
 
@@ -121,7 +112,7 @@ int main(int argc, const char **argv) {
   printf("simmmm\n");
 
   // left rotation on 1
-  BT_Map *bt3 = sla_btmap_create_with_pair(1, 1.0, NULL);
+  BT_Map *bt3 = sla_btmap_create_with_pair(1, 1.0);
   sla_btmap_insert(bt3, 2, 8.7);
   sla_btmap_insert(bt3, 3, 6.7);
   sla_btmap_remove(bt3, 2, &f);
@@ -165,6 +156,13 @@ int main(int argc, const char **argv) {
   printf("%f\n", f);
 
   btmap_delete(bt3);
+
+  BT_Map *bm = btmap_create();
+  int oi = 5, epa = 4;
+  btmap_insert(bm, &oi, sizeof(int), &epa, sizeof(int));
+  btmap_remove(bm, &oi, sizeof(int), NULL, sizeof(int));
+  printf("opa meu mano\n");
+  btmap_delete(bm);
 
   return 0;
 }

@@ -56,28 +56,11 @@ void heap_delete(Heap *h, void (*delete_data)(void *)) {
 * if the heap is empty return -1, else return 0
 */
 int heap_get_top(Heap *h, void *to_cpy) {
-  if(h == NULL) handle_error("trying to get the top of a NULL address");
+  if(h == NULL or to_cpy == NULL) handle_error("trying to get the top of a NULL address");
 
   if(heap_is_empty(h)) return -1;
   array_get_impl(h->elements, to_cpy, 0);
   return 0;
-}
-
-/*
-* swap two elements of an array
-*
-*/
-void swap_array_elements(Array *ar, unsigned ind1, unsigned ind2) {
-  if(ar == NULL) handle_error("trying positions with NULL address");
-  if(ind1 >= array_len(ar) or ind2 >= array_len(ar)) handle_error("trying to swap positions out of bounds");
-
-  u_int8_t tmp[array_data_size(ar)];
-  u_int8_t tmp2[array_data_size(ar)];
-
-  array_get_impl(ar, tmp, ind1);
-  array_get_impl(ar, tmp2, ind2);
-  array_set_impl(ar, tmp, ind2);
-  array_set_impl(ar, tmp2, ind1);
 }
 
 /*
@@ -103,7 +86,7 @@ void heap_put(Heap *h, void *to_add) {
       array_get_impl(h->elements, value_parent_pos, parent_pos);
       int result = h->cmp(value_pos, value_parent_pos, data_size);
       if(result < 0) break; //bigger
-      swap_array_elements(h->elements, pos, parent_pos);
+      array_swap_elements(h->elements, pos, parent_pos);
       pos = parent_pos;
     }
   else
@@ -114,7 +97,7 @@ void heap_put(Heap *h, void *to_add) {
       array_get_impl(h->elements, value_parent_pos, parent_pos);
       int result = h->cmp(value_pos, value_parent_pos, data_size);
       if(result > 0) break; //smaller
-      swap_array_elements(h->elements, pos, parent_pos);
+      array_swap_elements(h->elements, pos, parent_pos);
       pos = parent_pos;
     }
 }
@@ -167,8 +150,8 @@ int get_best_child_pos(Heap *h, unsigned pos, unsigned len, size_t data_size, vo
 }
 
 /*
-* remove the first element(max or min) of the heap
-*
+* remove the first element(max or min) of the heap and copy it to to_cpy
+* pass NULL for to_cpy if you don't want a copy
 */
 int heap_pop(Heap *h, void *to_cpy) {
   if(h == NULL) handle_error("trying to pop from a NULL address");
@@ -190,7 +173,7 @@ int heap_pop(Heap *h, void *to_cpy) {
       if(child_pos == -1) break;
       ret = h->cmp(val, best_child, data_size);
       if(ret >= 0) break;
-      swap_array_elements(h->elements, val_pos, child_pos);
+      array_swap_elements(h->elements, val_pos, child_pos);
       val_pos = child_pos;
     }
   }
@@ -200,7 +183,7 @@ int heap_pop(Heap *h, void *to_cpy) {
       if(child_pos == -1) break;
       ret = h->cmp(val, best_child, data_size);
       if(ret <= 0) break;
-      swap_array_elements(h->elements, val_pos, child_pos);
+      array_swap_elements(h->elements, val_pos, child_pos);
       val_pos = child_pos;
     }
   }
@@ -230,7 +213,7 @@ void heap_from_array(Heap *h, Array **ar) {
         if(child_pos == -1) break;
         ret = h->cmp(val, best_child, data_size);
         if(ret >= 0) break;
-        swap_array_elements(*ar, tmp_pos, child_pos);
+        array_swap_elements(*ar, tmp_pos, child_pos);
         tmp_pos = child_pos;
       }
     else
@@ -239,7 +222,7 @@ void heap_from_array(Heap *h, Array **ar) {
         if(child_pos == -1) break;
         ret = h->cmp(val, best_child, data_size);
         if(ret <= 0) break;
-        swap_array_elements(*ar, tmp_pos, child_pos);
+        array_swap_elements(*ar, tmp_pos, child_pos);
         tmp_pos = child_pos;
       }
   }

@@ -66,12 +66,12 @@ int main(int argc, const char **argv) {
 
   heap_change_status(h);
   debug(h);
-  int oi;
   i_heap_put(h, 0);
   debug(h);
-  i_heap_pop(h, &oi);
-  i_heap_pop(h, &oi);
+  i_heap_pop(h, NULL);
+  i_heap_pop(h, NULL);
 
+  int oi;
   i_heap_get_top(h, &oi);
   printf("%d\n", oi);
 

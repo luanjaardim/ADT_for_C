@@ -89,6 +89,13 @@ int main(int argc, const char **argv) {
   printf("%d %c %f\n", a, c, f);
   
   iterate_over(ll, 0);
+
+  //removing and descarting the copy
+  list_pop_impl(ll, NULL); 
+  list_remove_impl(ll, NULL, 0);
+
+  iterate_over(ll, 0);
+
   list_delete(ll);
 
   return 0;
