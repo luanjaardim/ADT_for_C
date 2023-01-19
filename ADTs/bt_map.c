@@ -413,12 +413,12 @@ void btmap_pairs_visit(BT_Map *map, void (*custom_func)(BT_Pair *)) {
 }
 
 /*
-* returns the pair with the specific key
+* returns the pair with the specific key and NULL if not found
 *
 */
 BT_Pair *btmap_get_pair(BT_Map *map, void *key, size_t key_size) { 
   Node *found = btmap_search_key(map, key, key_size);
-  return node_get_pair(found);;
+  return node_get_pair(found);
 }
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
