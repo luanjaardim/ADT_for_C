@@ -43,8 +43,8 @@ typedef enum LinkedNodes {
 
 /*
 * generate and return a BT_Map pointer to the heap allocated Map 
-* cmp can receive a custom function for comparing keys
-* if NULL is passed btmap_std_cmp is used by default
+* 
+* 
 */
 BT_Map *btmap_create() {
   BT_Map *new_tree = (BT_Map *) malloc(sizeof(BT_Map));

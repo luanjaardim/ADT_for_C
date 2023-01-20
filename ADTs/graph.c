@@ -102,3 +102,23 @@ void graph_set_double_link(Graph *g, void *n, void *m, size_t node_size, void *w
   graph_set_simple_link(g, n, m, node_size, weight, weight_size);
   graph_set_simple_link(g, m, n, node_size, weight, weight_size);
 }
+
+void print_aux(BT_Pair *pair) {
+  int key;
+  pair_get_key(pair, &key, sizeof(int));
+  Array *ar;
+  pair_get_value(pair, &ar, sizeof(Array *));
+  unsigned len =  array_len(ar);
+  printf("%d : ", key);
+  for(int i = 0; i < len; i++) {
+    Node_Weight *nw;
+    array_get_impl(ar, &nw, i);
+    printf("{ %d, %f } ", *((int *)nw->node), *((float *)nw->weight));
+  }
+  printf("\n");
+}
+
+void print(Graph *g) {
+  BT_Map *bt = g->graph;
+  btmap_pairs_visit(bt, print_aux);
+}
